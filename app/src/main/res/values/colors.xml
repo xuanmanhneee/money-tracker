@@ -2,4 +2,11 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <color name="placeholder_overview">#BBDEFB</color>
+    <color name="placeholder_transactions">#C8E6C9</color>
+    <color name="placeholder_add">#FFF9C4</color>
+    <color name="placeholder_budget">#FFE0B2</color>
+    <color name="placeholder_account">#E1BEE7</color>
+
 </resources>
