@@ -5,8 +5,18 @@
 
     <color name="placeholder_overview">#BBDEFB</color>
     <color name="placeholder_transactions">#C8E6C9</color>
-    <color name="placeholder_add">#FFF9C4</color>
+    <color name="placeholder_add">#FFFFFF</color>
     <color name="placeholder_budget">#FFE0B2</color>
     <color name="placeholder_account">#E1BEE7</color>
+
+    <!--         -->
+    <color name="bg_white">#FFFFFF</color>
+    <color name="divider">#ECECEC</color>
+    <!--         -->
+    <color name="text_primary">#1A1A2E</color>
+    <color name="text_secondary">#8A8A9A</color>
+    <color name="text_hint">#C4C4D0</color>
+    <color name="text_button">#000000</color>
+    <color name="bg_button">#B0D0E9</color>
 
 </resources>
