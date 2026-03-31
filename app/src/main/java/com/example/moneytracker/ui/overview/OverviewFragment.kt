@@ -1,9 +1,9 @@
 package com.example.moneytracker.ui.overview
 
-
 import android.animation.ArgbEvaluator
 import android.animation.ValueAnimator
 import android.annotation.SuppressLint
+import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.util.TypedValue
@@ -15,7 +15,6 @@ import android.widget.RadioButton
 import android.widget.RadioGroup
 import android.widget.TextView
 import androidx.core.content.ContextCompat
-import androidx.core.widget.TextViewCompat
 import androidx.fragment.app.Fragment
 import com.example.moneytracker.R
 import com.github.mikephil.charting.charts.LineChart
@@ -31,34 +30,23 @@ class OverviewFragment : Fragment(R.layout.fragment_overview){
     private lateinit var ivTotalBalance: ImageView
     private lateinit var btnSearch: ImageButton
     private lateinit var btnNotification: ImageButton
-    private lateinit var  radioGroupPeriod: RadioGroup
-
+    private lateinit var radioGroupPeriod: RadioGroup
     private lateinit var layoutExpense: LinearLayout
-
     private lateinit var layoutIncome: LinearLayout
-
     private lateinit var viewDividerLeft: View
     private lateinit var viewDividerRight: View
-
-    // Thêm khai báo
     private lateinit var tvTotalExpense: TextView
     private lateinit var tvTotalIncome: TextView
-
     private lateinit var lineChart: LineChart
-
 
     private var isBalanceVisible = true
     private var actualBalance = 0.0
 
-
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         initViews(view)
         setupListeners()
         loadData()
-
     }
 
     private fun initViews(view: View) {
@@ -76,208 +64,98 @@ class OverviewFragment : Fragment(R.layout.fragment_overview){
         lineChart = view.findViewById(R.id.lineChart)
     }
 
-    private fun setupListeners()
-    {
-        btnSearch.setOnClickListener {
-            // Xử lý khi người dùng nhấn nút Search
-        }
-
-        btnNotification.setOnClickListener {
-            // Xử lý khi người dùng nhấn nút Notification
-        }
-
-        radioGroupPeriod.setOnCheckedChangeListener { group, checkedId ->
-            when (checkedId) {
-                R.id.rbThisMonth -> {
-                    // Xử lý khi người dùng chọn This Month
-                }
-
-                R.id.rbLastMonth -> {
-                    // Xử lý khi người dùng chọn Last Month
-                }
-            }
-        }
-
-        ivTotalBalance.setOnClickListener {
-            toggleBalanceVisibility()
-
-        }
-
-        setupReportTabListeners();
-
+    private fun setupListeners() {
+        ivTotalBalance.setOnClickListener { toggleBalanceVisibility() }
+        setupReportTabListeners()
     }
 
+    private fun getHiddenBalance(balance: Double): String {
+        val digitCount = Math.abs(balance.toLong()).toString().length
+        return "*".repeat(digitCount) + " ₫"
+    }
 
-
-// Hàm mới: Tạo chuỗi dấu sao tương ứng với số tiền
-private fun getHiddenBalance(balance: Double): String {
-    // 1. Chuyển số tiền thành số nguyên để loại bỏ phần thập phân (.0)
-    // Dùng Math.abs để phòng trường hợp số âm thì không bị đếm nhầm dấu trừ
-    val digitCount = Math.abs(balance.toLong()).toString().length
-
-    // 2. Tạo ra một chuỗi dấu '*' có số lượng bằng đúng số chữ số vừa đếm được
-    val stars = "*".repeat(digitCount)
-    return "$stars ₫"
-}
-
-    // Cập nhật lại logic chuyển đổi hiển thị
     private fun toggleBalanceVisibility() {
         isBalanceVisible = !isBalanceVisible
-
-        tvTotalBalance.animate()
-            .alpha(0f)
-            .setDuration(150)
-            .withEndAction {
-                if (isBalanceVisible) {
-                    tvTotalBalance.text = formatCurrency(actualBalance)
-                    ivTotalBalance.setImageResource(R.drawable.view)
-                } else {
-
-                    tvTotalBalance.text = getHiddenBalance(actualBalance)
-                    ivTotalBalance.setImageResource(R.drawable.close_view)
-                }
-
-                tvTotalBalance.animate()
-                    .alpha(1f)
-                    .setDuration(150)
-                    .start()
+        tvTotalBalance.animate().alpha(0f).setDuration(150).withEndAction {
+            if (isBalanceVisible) {
+                tvTotalBalance.text = formatCurrency(actualBalance)
+                ivTotalBalance.setImageResource(R.drawable.view)
+            } else {
+                tvTotalBalance.text = getHiddenBalance(actualBalance)
+                ivTotalBalance.setImageResource(R.drawable.close_view)
             }
-            .start()
+            tvTotalBalance.animate().alpha(1f).setDuration(150).start()
+        }.start()
     }
 
-    private fun loadData()
-    {
-        actualBalance = 4775000.0 // Lấy từ database
-        val totalExpense = 0.0
-        val totalIncome = 472725055.0
-
-        updateUI(actualBalance, totalExpense, totalIncome)
+    private fun loadData() {
+        actualBalance = 4775000.0
+        updateUI(actualBalance, 0.0, 472725055.0)
     }
-
 
     private fun updateUI(balance: Double, expense: Double, income: Double) {
-        // Format tiền tệ Việt Nam
         actualBalance = balance
-        if (isBalanceVisible) {
-            tvTotalBalance.text = formatCurrency(balance)
-            ivTotalBalance.setImageResource(R.drawable.view)
-        } else{
-            tvTotalBalance.text = getHiddenBalance(balance)
-            ivTotalBalance.setImageResource(R.drawable.close_view)
-        }
-
+        tvTotalBalance.text = if (isBalanceVisible) formatCurrency(balance) else getHiddenBalance(balance)
+        ivTotalBalance.setImageResource(if (isBalanceVisible) R.drawable.view else R.drawable.close_view)
         tvTotalExpense.text = formatCurrency(expense)
         tvTotalIncome.text = formatCurrency(income)
-
     }
 
-    @SuppressLint("SuspiciousIndentation")
     private fun formatCurrency(amount: Double): String {
-    val formatter = NumberFormat.getCurrencyInstance(Locale("vi", "VN"))
+        val formatter = NumberFormat.getCurrencyInstance(Locale("vi", "VN"))
         return formatter.format(amount).replace("₫", "").trim() + " ₫"
     }
 
-
     private fun setupReportTabListeners() {
-        // Mặc định: chọn Tổng chi
         selectExpenseTab()
-
-        layoutExpense.setOnClickListener {
-            selectExpenseTab()
-        }
-
-        layoutIncome.setOnClickListener {
-            selectIncomeTab()
-        }
+        layoutExpense.setOnClickListener { selectExpenseTab() }
+        layoutIncome.setOnClickListener { selectIncomeTab() }
     }
 
     private fun selectExpenseTab() {
-        // Nửa trái -> đỏ, nửa phải -> trắng
-        animateDividerColor(viewDividerLeft, R.color.red)
-        animateDividerColor(viewDividerRight, R.color.white)
+        val inactiveColor = ContextCompat.getColor(requireContext(), R.color.divider_inactive)
+        animateDividerColor(viewDividerLeft, ContextCompat.getColor(requireContext(), R.color.red))
+        animateDividerColor(viewDividerRight, inactiveColor)
         setupChart(isExpense = true)
     }
 
     private fun selectIncomeTab() {
-        // Nửa trái -> trắng, nửa phải -> xanh
-        animateDividerColor(viewDividerLeft, R.color.white)
-        animateDividerColor(viewDividerRight, R.color.blue)
+        val inactiveColor = ContextCompat.getColor(requireContext(), R.color.divider_inactive)
+        animateDividerColor(viewDividerLeft, inactiveColor)
+        animateDividerColor(viewDividerRight, ContextCompat.getColor(requireContext(), R.color.blue))
         setupChart(isExpense = false)
     }
 
-    private fun animateDividerColor(targetView: View, colorRes: Int) {
-        val colorFrom = (targetView.background as? ColorDrawable)?.color
-            ?: ContextCompat.getColor(requireContext(), R.color.white)
-        val colorTo = ContextCompat.getColor(requireContext(), colorRes)
-
+    private fun animateDividerColor(targetView: View, colorTo: Int) {
+        val colorFrom = (targetView.background as? ColorDrawable)?.color ?: Color.TRANSPARENT
         ValueAnimator.ofObject(ArgbEvaluator(), colorFrom, colorTo).apply {
-            duration = 250 // ms
-            addUpdateListener { animator ->
-                targetView.setBackgroundColor(animator.animatedValue as Int)
-            }
+            duration = 250
+            addUpdateListener { animator -> targetView.setBackgroundColor(animator.animatedValue as Int) }
             start()
         }
     }
 
-
-    private fun loadCurrentMonthData()
-    {
-        // TODO: Load dữ liệu tháng hiện tại
-        loadData()
-    }
-
-    private fun loadLastMonthData() {
-        // TODO: Load dữ liệu tháng trước
-        // Có thể dùng Calendar để tính toán
-    }
-
-    private fun onSearchClicked() {
-        // TODO: search screen
-
-    }
-
-    private fun onNotificationClicked() {
-        // TODO: notification screen
-    }
-
-
     private fun setupChart(isExpense: Boolean) {
-        // Dữ liệu mẫu theo ngày trong tháng
-        val expenseEntries = listOf(
-            Entry(1f, 0f),
-            Entry(3f, 150000f),
-            Entry(5f, 320000f),
-            Entry(8f, 200000f),
-            Entry(10f, 450000f),
-            Entry(15f, 180000f),
-            Entry(20f, 390000f),
-            Entry(25f, 210000f),
-            Entry(28f, 500000f),
-            Entry(31f, 0f)
-        )
+        val entries = if (isExpense) {
+            listOf(Entry(1f, 0f), Entry(5f, 320000f), Entry(10f, 450000f), Entry(20f, 390000f), Entry(31f, 0f))
+        } else {
+            listOf(Entry(1f, 0f), Entry(15f, 472725055f), Entry(31f, 472725055f))
+        }
 
-        val incomeEntries = listOf(
-            Entry(1f, 0f),
-            Entry(3f, 472725055f),
-            Entry(10f, 472725055f),
-            Entry(20f, 472725055f),
-            Entry(31f, 472725055f)
-        )
-
-        val entries = if (isExpense) expenseEntries else incomeEntries
-        val color = if (isExpense)
-            ContextCompat.getColor(requireContext(), R.color.red)
-        else
-            ContextCompat.getColor(requireContext(), R.color.blue)
+        val chartColor = ContextCompat.getColor(requireContext(), if (isExpense) R.color.red else R.color.blue)
+        
+        val typedValue = TypedValue()
+        requireContext().theme.resolveAttribute(android.R.attr.textColorPrimary, typedValue, true)
+        val textColor = typedValue.data
 
         val dataSet = LineDataSet(entries, "").apply {
-            this.color = color
-            setCircleColor(color)
-            lineWidth = 2f
-            circleRadius = 3f
+            color = chartColor
+            setCircleColor(chartColor)
+            lineWidth = 2.5f
+            circleRadius = 4f
             setDrawFilled(true)
-            fillColor = color
-            fillAlpha = 30
+            fillColor = chartColor
+            fillAlpha = 40
             setDrawValues(false)
             mode = LineDataSet.Mode.CUBIC_BEZIER
         }
@@ -286,33 +164,27 @@ private fun getHiddenBalance(balance: Double): String {
             data = LineData(dataSet)
             description.isEnabled = false
             legend.isEnabled = false
-            setTouchEnabled(true)
-            isDragEnabled = true
-            setScaleEnabled(false)
             setDrawGridBackground(false)
-            setBackgroundColor(android.graphics.Color.parseColor("#2E2E2E"))
+            setBackgroundColor(Color.TRANSPARENT)
 
             xAxis.apply {
                 position = XAxis.XAxisPosition.BOTTOM
-                textColor = android.graphics.Color.WHITE
+                this.textColor = textColor
                 setDrawGridLines(false)
-                granularity = 1f
                 axisMinimum = 1f
                 axisMaximum = 31f
             }
 
             axisLeft.apply {
-                textColor = android.graphics.Color.WHITE
+                this.textColor = textColor
                 setDrawGridLines(true)
-                gridColor = android.graphics.Color.parseColor("#444444")
+                gridColor = if (textColor == Color.WHITE) Color.parseColor("#444444") else Color.parseColor("#DDDDDD")
+                gridLineWidth = 0.5f
             }
 
             axisRight.isEnabled = false
-            animateX(500)
+            animateX(600)
             invalidate()
         }
     }
-
-
-
 }
