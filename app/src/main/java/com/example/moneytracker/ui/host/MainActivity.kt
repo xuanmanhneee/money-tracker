@@ -1,8 +1,10 @@
 package com.example.moneytracker.ui.host
 
+import android.content.Context
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.viewpager2.widget.ViewPager2
@@ -17,18 +19,33 @@ class MainActivity : AppCompatActivity() {
     private lateinit var bottomNav: BottomNavigationView
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Đọc cài đặt giao diện trước khi gọi super.onCreate và setContentView
+        val sharedPref = getSharedPreferences("settings", Context.MODE_PRIVATE)
+        val savedMode = sharedPref.getInt("theme_mode", AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+        AppCompatDelegate.setDefaultNightMode(savedMode)
+
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_main)
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
-        }
 
         viewPager = findViewById(R.id.viewPager)
         bottomNav = findViewById(R.id.bottom_nav)
         val fabAdd = findViewById<FloatingActionButton>(R.id.fab_add)
+
+        // Xử lý window insets cho edge-to-edge
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            // CHỈ apply padding cho top, KHÔNG apply cho bottom
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, 0)
+            insets
+        }
+
+        // Apply bottom inset cho bottom navigation
+        ViewCompat.setOnApplyWindowInsetsListener(bottomNav) { view, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.setPadding(0, 0, 0, systemBars.bottom)
+            insets
+        }
 
         viewPager.adapter = MainPaperAdapter(this)
         viewPager.offscreenPageLimit = 4
@@ -57,7 +74,6 @@ class MainActivity : AppCompatActivity() {
                 else -> false
             }
         }
-
 
         viewPager.registerOnPageChangeCallback(
             object : ViewPager2.OnPageChangeCallback() {
