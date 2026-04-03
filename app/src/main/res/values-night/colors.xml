@@ -4,31 +4,31 @@
     <color name="white">#FFFFFFFF</color>
 
     <!-- Dark Theme - Primary Colors -->
-    <color name="bg_primary">#0A0A0A</color>
-    <color name="bg_secondary">#2E2E2E</color>
-    <color name="bg_tertiary">#3A3A3A</color>
+    <color name="bg_primary">#000000</color>
+    <color name="bg_secondary">#2A2A2A</color>
+    <color name="bg_tertiary">#363636</color>
 
     <!-- Placeholders - Dark Theme -->
     <color name="placeholder_overview">#1B3A6B</color>
     <color name="placeholder_transactions">#1B4D2E</color>
-    <color name="placeholder_add">#2E2E2E</color>
+    <color name="placeholder_add">#2A2A2A</color>
     <color name="placeholder_budget">#4A3A1A</color>
     <color name="placeholder_account">#3A1B4A</color>
 
     <!-- Background -->
-    <color name="bg_white">#0A0A0A</color>
-    <color name="divider">#303030</color>
+    <color name="bg_white">#000000</color>
+    <color name="divider">#2D2D2D</color>
     
     <!-- Text Colors -->
-    <color name="text_primary">#FFFFFF</color>
-    <color name="text_secondary">#B0B0B0</color>
-    <color name="text_hint">#757575</color>
+    <color name="text_primary">#F5F5F5</color>
+    <color name="text_secondary">#A0A0A0</color>
+    <color name="text_hint">#696969</color>
     <color name="text_button">#FFFFFF</color>
     
     <!-- Button Colors -->
-    <color name="bg_button">#6200EE</color>
+    <color name="bg_button">#7C3AED</color>
     
     <!-- Status Colors -->
-    <color name="status_income">#4CAF50</color>
-    <color name="status_expense">#F44336</color>
+    <color name="status_income">#10B981</color>
+    <color name="status_expense">#EF4444</color>
 </resources>
