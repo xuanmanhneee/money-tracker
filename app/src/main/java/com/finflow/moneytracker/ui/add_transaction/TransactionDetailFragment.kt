@@ -7,7 +7,6 @@ import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.ImageView
@@ -23,46 +22,49 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Calendar
+import java.util.Locale
 import kotlin.math.abs
 import kotlin.math.round
 import kotlin.math.roundToLong
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
-class AddTransactionBottomSheet : BottomSheetDialogFragment(),
+class TransactionDetailFragment(private val transaction: Transaction) : BottomSheetDialogFragment(),
     CategorySelectionFragment.OnCategorySelectedListener,
     PaymentMethodSelectionFragment.OnPaymentMethodSelectedListener {
 
     companion object {
         private const val TYPE_EXPENSE = 0
-        private const val DEFAULT_WALLET_ID = "default_wallet_id"
     }
 
-    private lateinit var ivBack: ImageView
-    private lateinit var etAmountInput: EditText
-    private lateinit var etNotes: EditText
-    private lateinit var tvWorkHours: TextView
-    private lateinit var txtDate: TextView
-    private lateinit var btnPrev: ImageButton
-    private lateinit var btnNext: ImageButton
-    private lateinit var btnSelectCategory: LinearLayout
-    private lateinit var tvCategory: TextView
-    private lateinit var btnSelectPaymentMethod: LinearLayout
-    private lateinit var tvPaymentMethod: TextView
-    private lateinit var btnAddExpense: Button
+    private lateinit var ivBackDetail: ImageView
+    private lateinit var ivDelete: ImageView
+    private lateinit var etDetailAmount: EditText
+    private lateinit var etDetailNotes: EditText
+    private lateinit var tvDetailWorkHours: TextView
+    private lateinit var txtDetailDate: TextView
+    private lateinit var btnDetailPrev: ImageButton
+    private lateinit var btnDetailNext: ImageButton
+    private lateinit var btnDetailSelectCategory: LinearLayout
+    private lateinit var tvDetailCategory: TextView
+    private lateinit var btnDetailSelectPaymentMethod: LinearLayout
+    private lateinit var tvDetailPaymentMethod: TextView
+    private lateinit var btnSaveTransaction: android.widget.Button
 
     private var selectedCategory: Category? = null
     private var selectedPaymentMethod: PaymentMethod = PaymentMethod.CASH
 
     private val calendar: Calendar = Calendar.getInstance()
     private val sdf = SimpleDateFormat("EEEE, dd/MM/yyyy", Locale("vi"))
-
-    // Lương mỗi giờ (tạm thời hardcode, sau sẽ lấy từ user settings)
     private val HOURLY_WAGE = 26000.0
 
-    private val transactionRepository by lazy {
-        (requireActivity().application as MoneyTrackerApplication).container.transactionRepository
+    private val appContainer by lazy {
+        (requireActivity().application as MoneyTrackerApplication).container
     }
+
+    private val transactionRepository by lazy { appContainer.transactionRepository }
+    private val categoryRepository by lazy { appContainer.categoryRepository }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -70,7 +72,7 @@ class AddTransactionBottomSheet : BottomSheetDialogFragment(),
         savedInstanceState: Bundle?
     ): View {
         return inflater.inflate(
-            R.layout.bottom_sheet_add_transaction,
+            R.layout.fragment_transaction_detail,
             container,
             false
         )
@@ -79,28 +81,38 @@ class AddTransactionBottomSheet : BottomSheetDialogFragment(),
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        ivBack = view.findViewById(R.id.ivBack)
-        etAmountInput = view.findViewById(R.id.etAmountInput)
-        etNotes = view.findViewById(R.id.etNotes)
-        tvWorkHours = view.findViewById(R.id.tvWorkHours)
-        txtDate = view.findViewById(R.id.txtDate)
-        btnPrev = view.findViewById(R.id.btnPrev)
-        btnNext = view.findViewById(R.id.btnNext)
-        btnSelectCategory = view.findViewById(R.id.btnSelectCategory)
-        tvCategory = view.findViewById(R.id.tvCategory)
-        btnSelectPaymentMethod = view.findViewById(R.id.btnSelectPaymentMethod)
-        tvPaymentMethod = view.findViewById(R.id.tvPaymentMethod)
-        btnAddExpense = view.findViewById(R.id.btnAddExpense)
+        ivBackDetail = view.findViewById(R.id.ivBackDetail)
+        ivDelete = view.findViewById(R.id.ivDelete)
+        etDetailAmount = view.findViewById(R.id.etDetailAmount)
+        etDetailNotes = view.findViewById(R.id.etDetailNotes)
+        tvDetailWorkHours = view.findViewById(R.id.tvDetailWorkHours)
+        txtDetailDate = view.findViewById(R.id.txtDetailDate)
+        btnDetailPrev = view.findViewById(R.id.btnDetailPrev)
+        btnDetailNext = view.findViewById(R.id.btnDetailNext)
+        btnDetailSelectCategory = view.findViewById(R.id.btnDetailSelectCategory)
+        tvDetailCategory = view.findViewById(R.id.tvDetailCategory)
+        btnDetailSelectPaymentMethod = view.findViewById(R.id.btnDetailSelectPaymentMethod)
+        tvDetailPaymentMethod = view.findViewById(R.id.tvDetailPaymentMethod)
+        btnSaveTransaction = view.findViewById(R.id.btnSaveTransaction)
 
+        calendar.timeInMillis = transaction.date
         updateDate()
 
-        // Nút quay lại
-        ivBack.setOnClickListener {
+        etDetailAmount.setText(abs(transaction.amount).toString())
+        etDetailNotes.setText(transaction.note.orEmpty())
+        tvDetailPaymentMethod.text = selectedPaymentMethod.displayName
+        calculateWorkHours()
+        loadInitialCategory()
+
+        ivBackDetail.setOnClickListener {
             dismiss()
         }
 
-        // Listener để tính số giờ làm việc khi nhập số tiền
-        etAmountInput.addTextChangedListener(object : TextWatcher {
+        ivDelete.setOnClickListener {
+            deleteTransaction()
+        }
+
+        etDetailAmount.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
@@ -110,53 +122,58 @@ class AddTransactionBottomSheet : BottomSheetDialogFragment(),
             override fun afterTextChanged(s: Editable?) {}
         })
 
-        btnPrev.setOnClickListener {
+        btnDetailPrev.setOnClickListener {
             calendar.add(Calendar.DAY_OF_MONTH, -1)
             updateDate()
         }
 
-        btnNext.setOnClickListener {
+        btnDetailNext.setOnClickListener {
             calendar.add(Calendar.DAY_OF_MONTH, 1)
             updateDate()
         }
 
-        txtDate.setOnClickListener {
+        txtDetailDate.setOnClickListener {
             showDatePicker()
         }
 
-        // Click listener để mở CategorySelectionFragment
-        btnSelectCategory.setOnClickListener {
+        btnDetailSelectCategory.setOnClickListener {
             showCategorySelectionFragment()
         }
 
-        // Click listener để mở PaymentMethodSelectionFragment
-        btnSelectPaymentMethod.setOnClickListener {
+        btnDetailSelectPaymentMethod.setOnClickListener {
             showPaymentMethodSelectionFragment()
         }
 
-        // Click listener để lưu giao dịch
-        btnAddExpense.setOnClickListener {
-            saveTransaction()
+        btnSaveTransaction.setOnClickListener {
+            updateTransaction()
+        }
+    }
+
+    private fun loadInitialCategory() {
+        lifecycleScope.launch {
+            val categories = categoryRepository.getAllCategoriesStream().first()
+            selectedCategory = categories.firstOrNull { it.id == transaction.categoryId }
+            tvDetailCategory.text = selectedCategory?.name ?: "Danh mục #${transaction.categoryId}"
         }
     }
 
     private fun updateDate() {
-        txtDate.text = sdf.format(calendar.time)
+        txtDetailDate.text = sdf.format(calendar.time)
     }
 
     private fun calculateWorkHours() {
-        val amountText = etAmountInput.text.toString().trim()
+        val amountText = etDetailAmount.text.toString().trim()
 
         if (amountText.isEmpty()) {
-            tvWorkHours.text = "≈ 0 giờ làm việc"
+            tvDetailWorkHours.text = "≈ 0 giờ làm việc"
             return
         }
 
         val amount = amountText.toDoubleOrNull() ?: 0.0
         val hours = amount / HOURLY_WAGE
-        val roundedHours = round(hours * 100) / 100  // Làm tròn 2 chữ số thập phân
+        val roundedHours = round(hours * 100) / 100
 
-        tvWorkHours.text = "≈ $roundedHours giờ làm việc"
+        tvDetailWorkHours.text = "≈ $roundedHours giờ làm việc"
     }
 
     private fun showDatePicker() {
@@ -181,8 +198,8 @@ class AddTransactionBottomSheet : BottomSheetDialogFragment(),
 
     override fun onCategorySelected(category: Category) {
         selectedCategory = category
-        tvCategory.text = category.name
-        tvCategory.setTextColor(resources.getColor(R.color.text_primary, null))
+        tvDetailCategory.text = category.name
+        tvDetailCategory.setTextColor(resources.getColor(R.color.text_primary, null))
     }
 
     private fun showPaymentMethodSelectionFragment() {
@@ -193,13 +210,12 @@ class AddTransactionBottomSheet : BottomSheetDialogFragment(),
 
     override fun onPaymentMethodSelected(paymentMethod: PaymentMethod) {
         selectedPaymentMethod = paymentMethod
-        tvPaymentMethod.text = paymentMethod.displayName
-        tvPaymentMethod.setTextColor(resources.getColor(R.color.text_primary, null))
+        tvDetailPaymentMethod.text = paymentMethod.displayName
+        tvDetailPaymentMethod.setTextColor(resources.getColor(R.color.text_primary, null))
     }
 
-    private fun saveTransaction() {
-        // Kiểm tra validation
-        val amountText = etAmountInput.text.toString().trim()
+    private fun updateTransaction() {
+        val amountText = etDetailAmount.text.toString().trim()
         if (amountText.isEmpty()) {
             Toast.makeText(requireContext(), "Vui lòng nhập số tiền", Toast.LENGTH_SHORT).show()
             return
@@ -220,25 +236,28 @@ class AddTransactionBottomSheet : BottomSheetDialogFragment(),
         val isExpense = selectedCategory?.type == TYPE_EXPENSE
         val signedAmount = if (isExpense) -abs(baseAmount) else abs(baseAmount)
 
-        // Tạo transaction
-        val transaction = Transaction(
-            walletId = DEFAULT_WALLET_ID,
+        val updatedTransaction = Transaction(
+            id = transaction.id,
+            walletId = transaction.walletId,
             categoryId = selectedCategory!!.id,
             amount = signedAmount,
             date = calendar.timeInMillis,
-            note = etNotes.text.toString().trim(),
-            receiptImagePath = null,
-            toWalletId = null
+            note = etDetailNotes.text.toString().trim(),
+            receiptImagePath = transaction.receiptImagePath,
+            toWalletId = transaction.toWalletId
         )
 
         lifecycleScope.launch {
-            transactionRepository.insertTransaction(transaction)
+            transactionRepository.updateTransaction(updatedTransaction)
+            Toast.makeText(requireContext(), "Cập nhật giao dịch thành công", Toast.LENGTH_SHORT).show()
+            dismiss()
+        }
+    }
 
-            // Thông báo thành công
-            val message = "Lưu giao dịch thành công: ${selectedCategory!!.name}"
-            Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
-
-            // Đóng bottom sheet
+    private fun deleteTransaction() {
+        lifecycleScope.launch {
+            transactionRepository.deleteTransaction(transaction)
+            Toast.makeText(requireContext(), "Xóa giao dịch thành công", Toast.LENGTH_SHORT).show()
             dismiss()
         }
     }

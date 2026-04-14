@@ -19,7 +19,7 @@
             android:layout_width="match_parent"
             android:layout_height="56dp">
             <ImageView
-                android:id="@+id/ivBack"
+                android:id="@+id/ivBackDetail"
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:layout_gravity="start|center_vertical"
@@ -29,38 +29,21 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:text="Thêm giao dịch"
+                android:text="Chi tiết giao dịch"
                 android:textSize="18sp"
                 android:textStyle="bold"
                 android:textColor="@color/text_primary"
                 android:gravity="center" />
-        </FrameLayout>
-
-        <!-- PHƯƠNG THỨC THANH TOÁN (TIỀN MẶT) -->
-        <LinearLayout
-            android:id="@+id/btnSelectPaymentMethod"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:paddingVertical="8dp"
-            android:clickable="true"
-            android:focusable="true">
             <ImageView
+                android:id="@+id/ivDelete"
                 android:layout_width="24dp"
                 android:layout_height="24dp"
-                android:src="@drawable/ic_money"
-                app:tint="@color/bg_button" />
-            <TextView
-                android:id="@+id/tvPaymentMethod"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Tiền mặt"
-                android:textColor="@color/text_primary"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:layout_marginStart="12dp" />
-        </LinearLayout>
+                android:layout_gravity="end|center_vertical"
+                android:src="@drawable/ic_add"
+                android:rotation="45"
+                app:tint="@color/text_primary"
+                android:contentDescription="Xóa" />
+        </FrameLayout>
 
         <!-- SỐ TIỀN -->
         <LinearLayout
@@ -68,8 +51,8 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:gravity="center_horizontal"
-            android:layout_marginTop="8dp"
-            android:layout_marginBottom="8dp">
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="24dp">
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -77,7 +60,7 @@
                 android:textColor="@color/text_hint"
                 android:textSize="14sp" />
             <EditText
-                android:id="@+id/etAmountInput"
+                android:id="@+id/etDetailAmount"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:inputType="numberDecimal"
@@ -86,15 +69,12 @@
                 android:textStyle="bold"
                 android:gravity="center"
                 android:backgroundTint="@android:color/transparent"
-                android:hint="0"
-                android:textColorHint="@color/text_hint"
                 android:layout_marginTop="4dp"
                 android:layout_marginBottom="4dp" />
             <TextView
-                android:id="@+id/tvWorkHours"
+                android:id="@+id/tvDetailWorkHours"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="≈ 0 giờ làm việc"
                 android:textSize="13sp"
                 android:textColor="@color/text_secondary"
                 android:gravity="center"
@@ -103,7 +83,7 @@
 
         <!-- CHỌN NHÓM -->
         <LinearLayout
-            android:id="@+id/btnSelectCategory"
+            android:id="@+id/btnDetailSelectCategory"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
@@ -117,12 +97,38 @@
                 android:src="@drawable/ic_category"
                 app:tint="@color/bg_button" />
             <TextView
-                android:id="@+id/tvCategory"
+                android:id="@+id/tvDetailCategory"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Chọn nhóm"
-                android:textColor="@color/text_secondary"
+                android:textColor="@color/text_primary"
                 android:textSize="16sp"
+                android:layout_marginStart="12dp" />
+        </LinearLayout>
+
+        <!-- PHƯƠNG THỨC THANH TOÁN -->
+        <LinearLayout
+            android:id="@+id/btnDetailSelectPaymentMethod"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingVertical="8dp"
+            android:clickable="true"
+            android:focusable="true">
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_money"
+                app:tint="@color/bg_button" />
+            <TextView
+                android:id="@+id/tvDetailPaymentMethod"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Tiền mặt"
+                android:textColor="@color/text_primary"
+                android:textSize="16sp"
+                android:textStyle="bold"
                 android:layout_marginStart="12dp" />
         </LinearLayout>
 
@@ -139,10 +145,10 @@
                 android:src="@drawable/ic_add"
                 app:tint="@color/bg_button" />
             <EditText
-                android:id="@+id/etNotes"
+                android:id="@+id/etDetailNotes"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Thêm ghi chú"
+                android:hint="Ghi chú"
                 android:textColorHint="@color/text_secondary"
                 android:textColor="@color/text_primary"
                 android:textSize="16sp"
@@ -159,7 +165,7 @@
             android:padding="8dp">
 
             <ImageButton
-                android:id="@+id/btnPrev"
+                android:id="@+id/btnDetailPrev"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:src="@android:drawable/ic_media_previous"
@@ -167,7 +173,7 @@
                 app:tint="@color/bg_button"/>
 
             <TextView
-                android:id="@+id/txtDate"
+                android:id="@+id/txtDetailDate"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Date"
@@ -177,7 +183,7 @@
                 android:padding="16dp"/>
 
             <ImageButton
-                android:id="@+id/btnNext"
+                android:id="@+id/btnDetailNext"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:src="@android:drawable/ic_media_next"
@@ -186,13 +192,13 @@
 
         </LinearLayout>
 
-        <!-- NÚT THÊM -->
+        <!-- NÚT LƯU -->
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnAddExpense"
+            android:id="@+id/btnSaveTransaction"
             android:layout_width="match_parent"
             android:layout_height="56dp"
             android:layout_marginTop="32dp"
-            android:text="THÊM GIAO DỊCH"
+            android:text="LƯ U"
             android:textSize="16sp"
             android:textStyle="bold"
             android:textColor="@color/text_button"
