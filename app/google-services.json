@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "384962330503",
+    "project_id": "money-tracker-nhom7",
+    "storage_bucket": "money-tracker-nhom7.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:384962330503:android:40492680d5291621015d22",
+        "android_client_info": {
+          "package_name": "com.finflow.moneytracker"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBkAGN0d1piJBLAFP36cmGjC0lbsOtV5eU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

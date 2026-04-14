@@ -2,14 +2,15 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     id("kotlin-kapt")
+    alias(libs.plugins.google.services) // Mở lại dòng này
 }
 
 android {
-    namespace = "com.example.moneytracker"
+    namespace = "com.finflow.moneytracker"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.example.moneytracker"
+        applicationId = "com.finflow.moneytracker"
         minSdk = 26
         targetSdk = 34
         versionCode = 1
@@ -60,4 +61,10 @@ dependencies {
     implementation("androidx.room:room-runtime:2.7.0")
     implementation("androidx.room:room-ktx:2.7.0")
     kapt("androidx.room:room-compiler:2.7.0")
+
+    // Firebase (Mở lại toàn bộ)
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.analytics)
+    implementation(libs.firebase.firestore)
+    implementation(libs.firebase.auth)
 }
