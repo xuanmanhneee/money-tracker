@@ -2,7 +2,7 @@ package com.example.moneytracker.ui.overview
 
 import android.animation.ArgbEvaluator
 import android.animation.ValueAnimator
-import android.annotation.SuppressLint
+import android.content.Intent
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
@@ -38,6 +38,7 @@ class OverviewFragment : Fragment(R.layout.fragment_overview){
     private lateinit var tvTotalExpense: TextView
     private lateinit var tvTotalIncome: TextView
     private lateinit var lineChart: LineChart
+    private lateinit var tvSeeAllWallets: TextView
 
     private var isBalanceVisible = true
     private var actualBalance = 0.0
@@ -62,11 +63,17 @@ class OverviewFragment : Fragment(R.layout.fragment_overview){
         tvTotalExpense = view.findViewById(R.id.tvTotalExpense)
         tvTotalIncome = view.findViewById(R.id.tvTotalIncome)
         lineChart = view.findViewById(R.id.lineChart)
+        tvSeeAllWallets = view.findViewById(R.id.tvSeeAllWallets)
     }
 
     private fun setupListeners() {
         ivTotalBalance.setOnClickListener { toggleBalanceVisibility() }
         setupReportTabListeners()
+        
+        tvSeeAllWallets.setOnClickListener {
+            val intent = Intent(requireContext(), WalletActivity::class.java)
+            startActivity(intent)
+        }
     }
 
     private fun getHiddenBalance(balance: Double): String {

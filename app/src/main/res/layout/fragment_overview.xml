@@ -116,13 +116,17 @@
                         android:textStyle="bold" />
 
                     <TextView
+                        android:id="@+id/tvSeeAllWallets"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:padding="4dp"
                         android:text="Xem tất cả"
                         android:textColor="@color/green"
                         android:textSize="14sp"
-                        android:textStyle="bold" />
+                        android:textStyle="bold"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:background="?attr/selectableItemBackground"/>
 
                 </LinearLayout>
 
