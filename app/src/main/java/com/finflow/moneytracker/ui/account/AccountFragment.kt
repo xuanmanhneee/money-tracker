@@ -27,6 +27,7 @@ class AccountFragment : Fragment(R.layout.fragment_account) {
         val itemLogout = view.findViewById<View>(R.id.item_logout_action)
         val tvUserName = view.findViewById<TextView>(R.id.tv_display_name) 
         val tvUserEmail = view.findViewById<TextView>(R.id.tv_display_email)
+        val tvUserUid = view.findViewById<TextView>(R.id.tv_user_uid)
         
         val itemTheme = view.findViewById<View>(R.id.item_theme_action)
         val tvThemeStatus = view.findViewById<TextView>(R.id.tv_theme_val)
@@ -42,6 +43,7 @@ class AccountFragment : Fragment(R.layout.fragment_account) {
                 // Hiển thị thông tin user từ Firebase
                 tvUserName?.text = user.displayName ?: "Người dùng mới"
                 tvUserEmail?.text = user.email ?: "Đã đăng nhập ẩn danh"
+                tvUserUid?.text = "UID: ${user.uid}"
             } else {
                 layoutUserDetails?.visibility = View.GONE
                 btnGoogleSignIn?.visibility = View.VISIBLE

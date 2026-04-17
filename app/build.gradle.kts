@@ -2,7 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     id("kotlin-kapt")
-    alias(libs.plugins.google.services) // Mở lại dòng này
+    alias(libs.plugins.google.services)
 }
 
 android {
@@ -62,9 +62,12 @@ dependencies {
     implementation("androidx.room:room-ktx:2.7.0")
     kapt("androidx.room:room-compiler:2.7.0")
 
-    // Firebase (Mở lại toàn bộ)
+    // Firebase
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics)
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.auth)
+
+    // WorkManager để đồng bộ ngầm
+    implementation("androidx.work:work-runtime-ktx:2.9.0")
 }
