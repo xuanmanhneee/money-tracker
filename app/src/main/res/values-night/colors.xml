@@ -2,6 +2,4 @@
 <resources>
     <!-- Màu xám cho divider khi không được chọn ở giao diện Tối -->
     <color name="divider_inactive">#444444</color>
-
-
 </resources>

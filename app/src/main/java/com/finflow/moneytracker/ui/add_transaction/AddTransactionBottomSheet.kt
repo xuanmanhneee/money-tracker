@@ -27,6 +27,7 @@ import java.util.*
 import kotlin.math.abs
 import kotlin.math.round
 import kotlin.math.roundToLong
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 class AddTransactionBottomSheet : BottomSheetDialogFragment(),
@@ -35,7 +36,6 @@ class AddTransactionBottomSheet : BottomSheetDialogFragment(),
 
     companion object {
         private const val TYPE_EXPENSE = 0
-        private const val DEFAULT_WALLET_ID = "default_wallet_id"
     }
 
     private lateinit var ivBack: ImageView
@@ -62,6 +62,10 @@ class AddTransactionBottomSheet : BottomSheetDialogFragment(),
 
     private val transactionRepository by lazy {
         (requireActivity().application as MoneyTrackerApplication).container.transactionRepository
+    }
+
+    private val walletRepository by lazy {
+        (requireActivity().application as MoneyTrackerApplication).container.walletRepository
     }
 
     override fun onCreateView(
@@ -220,18 +224,24 @@ class AddTransactionBottomSheet : BottomSheetDialogFragment(),
         val isExpense = selectedCategory?.type == TYPE_EXPENSE
         val signedAmount = if (isExpense) -abs(baseAmount) else abs(baseAmount)
 
-        // Tạo transaction
-        val transaction = Transaction(
-            walletId = DEFAULT_WALLET_ID,
-            categoryId = selectedCategory!!.id,
-            amount = signedAmount,
-            date = calendar.timeInMillis,
-            note = etNotes.text.toString().trim(),
-            receiptImagePath = null,
-            toWalletId = null
-        )
-
         lifecycleScope.launch {
+            val defaultWallet = walletRepository.getWalletsStream().first().firstOrNull()
+            if (defaultWallet == null) {
+                Toast.makeText(requireContext(), "Bạn cần tạo ví trước khi thêm giao dịch", Toast.LENGTH_SHORT).show()
+                return@launch
+            }
+
+            // Tạo transaction với ví đang có trong hệ thống
+            val transaction = Transaction(
+                walletId = defaultWallet.id,
+                categoryId = selectedCategory!!.id,
+                amount = signedAmount,
+                date = calendar.timeInMillis,
+                note = etNotes.text.toString().trim(),
+                receiptImagePath = null,
+                toWalletId = null
+            )
+
             transactionRepository.insertTransaction(transaction)
 
             // Thông báo thành công

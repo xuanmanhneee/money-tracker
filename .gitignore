@@ -22,5 +22,7 @@ captures/
 Thumbs.db
 
 .kotlin/errors/
+.kotlin/
+.vscode/
 *.log
 
