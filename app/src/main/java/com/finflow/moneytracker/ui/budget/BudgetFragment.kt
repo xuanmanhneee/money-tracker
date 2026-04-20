@@ -2,6 +2,7 @@ package com.finflow.moneytracker.ui.budget
 
 import android.content.res.ColorStateList
 import android.os.Bundle
+import android.widget.TextView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -145,28 +146,39 @@ class BudgetFragment : Fragment() {
 		onConfirm: (Long) -> Unit
 	) {
 		val context = requireContext()
-		val inputLayout = TextInputLayout(context)
-		val input = TextInputEditText(context)
+		val dialogView = layoutInflater.inflate(R.layout.dialog_budget_input, null)
+		val dialogTitle = dialogView.findViewById<TextView>(R.id.tvDialogTitle)
+		val currentBudgetValue = dialogView.findViewById<TextView>(R.id.tvCurrentBudgetValue)
+		val inputLayout = dialogView.findViewById<TextInputLayout>(R.id.tilBudgetAmount)
+		val input = dialogView.findViewById<TextInputEditText>(R.id.etBudgetAmount)
 
-		inputLayout.hint = "Số tiền ngân sách"
-		inputLayout.addView(input)
-		input.inputType = android.text.InputType.TYPE_CLASS_NUMBER
+		dialogTitle.text = title
+		currentBudgetValue.text = formatCurrency(defaultAmount)
 		if (defaultAmount > 0L) {
 			input.setText(defaultAmount.toString())
 		}
 
-		MaterialAlertDialogBuilder(context)
-			.setTitle(title)
-			.setMessage("Ngân sách thủ công sẽ được ưu tiên hơn tự động.")
-			.setView(inputLayout)
-			.setPositiveButton("Lưu") { _, _ ->
-				val value = input.text?.toString()?.trim()?.toLongOrNull() ?: 0L
-				if (value > 0L) {
-					onConfirm(value)
-				}
-			}
+		val dialog = MaterialAlertDialogBuilder(context)
+			.setView(dialogView)
+			.setPositiveButton("Lưu", null)
 			.setNegativeButton("Hủy", null)
-			.show()
+			.create()
+
+		dialog.setOnShowListener {
+			dialog.getButton(androidx.appcompat.app.AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+				val value = input.text?.toString()?.trim()?.toLongOrNull() ?: 0L
+				if (value <= 0L) {
+					inputLayout.error = "Vui lòng nhập số tiền lớn hơn 0"
+					return@setOnClickListener
+				}
+
+				inputLayout.error = null
+				onConfirm(value)
+				dialog.dismiss()
+			}
+		}
+
+		dialog.show()
 	}
 
 	private fun formatCurrency(value: Long): String {

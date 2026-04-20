@@ -7,6 +7,7 @@ import com.finflow.moneytracker.data.local.entity.BudgetAllocation
 import com.finflow.moneytracker.data.local.entity.BudgetCycleType
 import com.finflow.moneytracker.data.local.entity.Category
 import com.finflow.moneytracker.data.local.entity.Transaction
+import com.finflow.moneytracker.data.local.entity.Wallet
 import com.finflow.moneytracker.data.repository.BudgetRepository
 import com.finflow.moneytracker.data.repository.CategoryRepository
 import com.finflow.moneytracker.data.repository.TransactionRepository
@@ -81,6 +82,8 @@ class BudgetViewModel(
     companion object {
         private const val TYPE_EXPENSE = 0
         private const val DEFAULT_PLANNED_BUDGET = 5_000_000L
+        private const val DEFAULT_LOCAL_USER = "local_user"
+        private const val DEFAULT_WALLET_NAME = "Ví mặc định"
     }
 
     private val currentDateFlow = MutableStateFlow(System.currentTimeMillis())
@@ -250,11 +253,10 @@ class BudgetViewModel(
             return
         }
 
-        val wallets = walletRepository.getWalletsStream().first()
         val categories = categoryRepository.getAllCategoriesStream().first()
         val expenseCategories = categories.filter { it.type == TYPE_EXPENSE }
 
-        val defaultWallet = wallets.firstOrNull() ?: return
+        val defaultWallet = getOrCreateDefaultWallet()
         val (periodStart, periodEnd) = getMonthRange(now)
 
         val budgetFromCategoryLimit = expenseCategories.sumOf { it.monthlyBudgetLimit ?: 0L }
@@ -296,12 +298,11 @@ class BudgetViewModel(
             .getBudgetForDateStream(BudgetCycleType.MONTHLY, now)
             .first()
 
-        val wallets = walletRepository.getWalletsStream().first()
         val categories = categoryRepository.getAllCategoriesStream().first()
         val expenseCategories = categories.filter { it.type == TYPE_EXPENSE }
 
         if (existingBudget == null) {
-            val defaultWallet = wallets.firstOrNull() ?: return
+            val defaultWallet = getOrCreateDefaultWallet()
             val (periodStart, periodEnd) = getMonthRange(now)
 
             val manualBudget = Budget(
@@ -353,6 +354,21 @@ class BudgetViewModel(
             )
             budgetRepository.upsertAllocations(existingBudget.id, allocations)
         }
+    }
+
+    private suspend fun getOrCreateDefaultWallet(): Wallet {
+        val existingWallet = walletRepository.getWalletsStream().first().firstOrNull()
+        if (existingWallet != null) {
+            return existingWallet
+        }
+
+        val createdWallet = Wallet(
+            userId = DEFAULT_LOCAL_USER,
+            name = DEFAULT_WALLET_NAME,
+            balance = 0L
+        )
+        walletRepository.insertWallet(createdWallet)
+        return createdWallet
     }
 
     private fun buildBalancedAllocations(

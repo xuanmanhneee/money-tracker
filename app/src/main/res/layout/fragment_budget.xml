@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/bg_white"
-    android:padding="16dp">
+    android:padding="14dp">
 
     <TextView
         android:id="@+id/tvBudgetPeriod"
@@ -33,7 +33,7 @@
         android:id="@+id/layoutBudgetActions"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
+        android:layout_marginTop="10dp"
         android:orientation="horizontal"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -52,11 +52,11 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnEditBudget"
-            style="@style/Widget.MaterialComponents.Button"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Chỉnh sửa"
+            android:text="Chỉnh sửa ngân sách"
             android:textAllCaps="false"
             android:visibility="gone" />
     </LinearLayout>
@@ -71,7 +71,7 @@
         android:id="@+id/cardBudgetSummary"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="12dp"
         app:cardBackgroundColor="@color/dark_grey"
         app:cardCornerRadius="20dp"
         app:cardElevation="0dp"
@@ -85,7 +85,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:padding="14dp">
 
             <TextView
                 android:id="@+id/tvBudgetName"
@@ -131,7 +131,7 @@
                 android:layout_marginTop="4dp"
                 android:text="0 ₫"
                 android:textColor="@color/text_primary"
-                android:textSize="28sp"
+                android:textSize="26sp"
                 android:textStyle="bold" />
 
             <LinearLayout
@@ -250,7 +250,7 @@
         android:id="@+id/tvCategorySectionTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="14dp"
+        android:layout_marginTop="10dp"
         android:text="Phân bổ theo danh mục"
         android:textColor="@color/text_primary"
         android:textSize="16sp"
@@ -262,9 +262,11 @@
         android:id="@+id/rvBudgetCategories"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="6dp"
         android:clipToPadding="false"
-        android:paddingBottom="8dp"
+        android:overScrollMode="ifContentScrolls"
+        android:paddingBottom="120dp"
+        android:scrollbars="vertical"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

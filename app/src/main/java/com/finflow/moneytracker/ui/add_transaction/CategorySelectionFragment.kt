@@ -11,6 +11,7 @@ import androidx.lifecycle.lifecycleScope
 import com.finflow.moneytracker.MoneyTrackerApplication
 import com.finflow.moneytracker.R
 import com.finflow.moneytracker.data.local.entity.Category
+import com.finflow.moneytracker.ui.common.CategoryIconResolver
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import kotlinx.coroutines.launch
 
@@ -79,7 +80,13 @@ class CategorySelectionFragment : BottomSheetDialogFragment() {
             val iconView = categoryView.findViewById<ImageView>(R.id.ivCategoryIcon)
             val nameView = categoryView.findViewById<TextView>(R.id.tvCategoryName)
 
-            iconView.setImageResource(resolveCategoryIcon(category.icon))
+            iconView.setImageResource(
+                CategoryIconResolver.resolveCategoryIconRes(
+                    iconName = category.icon,
+                    categoryName = category.name,
+                    categoryType = category.type
+                )
+            )
             nameView.text = category.name
 
             categoryView.setOnClickListener {
@@ -133,13 +140,6 @@ class CategorySelectionFragment : BottomSheetDialogFragment() {
             }
         })
         dialog.show(parentFragmentManager, "AddCategory")
-    }
-
-    private fun resolveCategoryIcon(iconName: String): Int {
-        return when (iconName) {
-            "ic_food", "ic_salary", "ic_transport", "ic_category" -> R.drawable.ic_category
-            else -> R.drawable.ic_category
-        }
     }
 
     fun setOnCategorySelectedListener(listener: OnCategorySelectedListener) {

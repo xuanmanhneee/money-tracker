@@ -12,7 +12,9 @@ object AppViewModelProvider {
     val Factory = viewModelFactory {
         initializer {
             TransactionsViewModel(
-                moneyTrackerApplication().container.transactionRepository
+                transactionRepository = moneyTrackerApplication().container.transactionRepository,
+                categoryRepository = moneyTrackerApplication().container.categoryRepository,
+                walletRepository = moneyTrackerApplication().container.walletRepository
             )
         }
 
