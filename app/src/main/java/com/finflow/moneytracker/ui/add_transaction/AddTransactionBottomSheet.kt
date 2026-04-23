@@ -19,6 +19,7 @@ import com.finflow.moneytracker.MoneyTrackerApplication
 import com.finflow.moneytracker.R
 import com.finflow.moneytracker.data.local.entity.Category
 import com.finflow.moneytracker.data.local.entity.Transaction
+import com.finflow.moneytracker.data.local.entity.Wallet
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
@@ -27,6 +28,7 @@ import java.util.*
 import kotlin.math.abs
 import kotlin.math.round
 import kotlin.math.roundToLong
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 class AddTransactionBottomSheet : BottomSheetDialogFragment(),
@@ -35,7 +37,10 @@ class AddTransactionBottomSheet : BottomSheetDialogFragment(),
 
     companion object {
         private const val TYPE_EXPENSE = 0
-        private const val DEFAULT_WALLET_ID = "default_wallet_id"
+        private const val DEFAULT_LOCAL_USER = "local_user"
+        private const val CASH_WALLET_NAME = "Tiền mặt"
+        private const val BANK_WALLET_NAME = "Ngân hàng"
+        private const val LEGACY_DEFAULT_WALLET_NAME = "Ví mặc định"
     }
 
     private lateinit var ivBack: ImageView
@@ -62,6 +67,10 @@ class AddTransactionBottomSheet : BottomSheetDialogFragment(),
 
     private val transactionRepository by lazy {
         (requireActivity().application as MoneyTrackerApplication).container.transactionRepository
+    }
+
+    private val walletRepository by lazy {
+        (requireActivity().application as MoneyTrackerApplication).container.walletRepository
     }
 
     override fun onCreateView(
@@ -220,18 +229,20 @@ class AddTransactionBottomSheet : BottomSheetDialogFragment(),
         val isExpense = selectedCategory?.type == TYPE_EXPENSE
         val signedAmount = if (isExpense) -abs(baseAmount) else abs(baseAmount)
 
-        // Tạo transaction
-        val transaction = Transaction(
-            walletId = DEFAULT_WALLET_ID,
-            categoryId = selectedCategory!!.id,
-            amount = signedAmount,
-            date = calendar.timeInMillis,
-            note = etNotes.text.toString().trim(),
-            receiptImagePath = null,
-            toWalletId = null
-        )
-
         lifecycleScope.launch {
+            val selectedWallet = getOrCreateWalletForPaymentMethod(selectedPaymentMethod)
+
+            // Tạo transaction với ví đang có trong hệ thống
+            val transaction = Transaction(
+                walletId = selectedWallet.id,
+                categoryId = selectedCategory!!.id,
+                amount = signedAmount,
+                date = calendar.timeInMillis,
+                note = etNotes.text.toString().trim(),
+                receiptImagePath = null,
+                toWalletId = null
+            )
+
             transactionRepository.insertTransaction(transaction)
 
             // Thông báo thành công
@@ -241,6 +252,43 @@ class AddTransactionBottomSheet : BottomSheetDialogFragment(),
             // Đóng bottom sheet
             dismiss()
         }
+    }
+
+    private suspend fun getOrCreateWalletForPaymentMethod(paymentMethod: PaymentMethod): Wallet {
+        val wallets = walletRepository.getWalletsStream().first()
+        val targetWalletName = when (paymentMethod) {
+            PaymentMethod.CASH -> CASH_WALLET_NAME
+            PaymentMethod.BANK -> BANK_WALLET_NAME
+        }
+
+        val exactWallet = wallets.firstOrNull { wallet ->
+            wallet.name.equals(targetWalletName, ignoreCase = true)
+        }
+        if (exactWallet != null) {
+            return exactWallet
+        }
+
+        if (paymentMethod == PaymentMethod.CASH) {
+            val legacyWallet = wallets.firstOrNull { wallet ->
+                wallet.name.equals(LEGACY_DEFAULT_WALLET_NAME, ignoreCase = true)
+            }
+            if (legacyWallet != null) {
+                return legacyWallet
+            }
+
+            val firstWallet = wallets.firstOrNull()
+            if (firstWallet != null) {
+                return firstWallet
+            }
+        }
+
+        val createdWallet = Wallet(
+            userId = DEFAULT_LOCAL_USER,
+            name = targetWalletName,
+            balance = 0L
+        )
+        walletRepository.insertWallet(createdWallet)
+        return createdWallet
     }
 
     override fun onStart() {

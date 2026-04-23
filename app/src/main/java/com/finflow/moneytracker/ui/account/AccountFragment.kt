@@ -10,64 +10,75 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.fragment.app.Fragment
 import com.finflow.moneytracker.R
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.firebase.auth.FirebaseAuth
 
 class AccountFragment : Fragment(R.layout.fragment_account) {
 
-    // Trạng thái đăng nhập giả lập (Mặc định là FALSE để người dùng dùng tự do)
-    private var isLoggedIn = false 
+    private lateinit var auth: FirebaseAuth
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Các thành phần thông tin người dùng
+        auth = FirebaseAuth.getInstance()
+
+        // Các thành phần giao diện
         val layoutUserDetails = view.findViewById<View>(R.id.layout_user_details)
         val btnGoogleSignIn = view.findViewById<Button>(R.id.btn_google_signin)
         val itemLogout = view.findViewById<View>(R.id.item_logout_action)
+        val tvUserName = view.findViewById<TextView>(R.id.tv_display_name) 
+        val tvUserEmail = view.findViewById<TextView>(R.id.tv_display_email)
         
-        // Các thành phần cài đặt luôn hiện
         val itemTheme = view.findViewById<View>(R.id.item_theme_action)
         val tvThemeStatus = view.findViewById<TextView>(R.id.tv_theme_val)
 
-        // Hàm cập nhật trạng thái hiển thị (Frontend Logic)
+        // Hàm cập nhật UI dựa trên Firebase User thật
         fun refreshUI() {
-            if (isLoggedIn) {
-                // Đã đăng nhập: Hiện tên/email và nút đăng xuất, ẩn nút đăng nhập Google
+            val user = auth.currentUser
+            if (user != null) {
                 layoutUserDetails?.visibility = View.VISIBLE
                 btnGoogleSignIn?.visibility = View.GONE
                 itemLogout?.visibility = View.VISIBLE
+                
+                // Hiển thị thông tin user từ Firebase
+                tvUserName?.text = user.displayName ?: "Người dùng mới"
+                tvUserEmail?.text = user.email ?: "Đã đăng nhập ẩn danh"
             } else {
-                // Chưa đăng nhập: Hiện nút đăng nhập Google, ẩn tên/email và nút đăng xuất
                 layoutUserDetails?.visibility = View.GONE
                 btnGoogleSignIn?.visibility = View.VISIBLE
                 itemLogout?.visibility = View.GONE
             }
         }
 
-        // Khởi tạo giao diện lần đầu
         refreshUI()
 
-        // Xử lý nút Đăng nhập Google
+        // Xử lý Đăng nhập
         btnGoogleSignIn?.setOnClickListener {
-            isLoggedIn = true
-            refreshUI()
-            Toast.makeText(context, "Chào mừng bạn đã đăng nhập!", Toast.LENGTH_SHORT).show()
+            auth.signInAnonymously()
+                .addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        refreshUI()
+                        Toast.makeText(context, "Chào mừng bạn!", Toast.LENGTH_SHORT).show()
+                    } else {
+                        Toast.makeText(context, "Lỗi đăng nhập: ${task.exception?.message}", Toast.LENGTH_LONG).show()
+                    }
+                }
         }
 
-        // Xử lý nút Đăng xuất
+        // Xử lý Đăng xuất
         itemLogout?.setOnClickListener {
             MaterialAlertDialogBuilder(requireContext())
                 .setTitle("Đăng xuất")
-                .setMessage("Bạn có muốn đăng xuất khỏi tài khoản Google không?")
+                .setMessage("Dữ liệu của bạn sẽ được lưu an toàn trên Cloud. Bạn có muốn đăng xuất không?")
                 .setNegativeButton("Hủy", null)
                 .setPositiveButton("Đăng xuất") { _, _ ->
-                    isLoggedIn = false
+                    auth.signOut()
                     refreshUI()
-                    Toast.makeText(context, "Đã quay về chế độ dùng tự do", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "Đã đăng xuất", Toast.LENGTH_SHORT).show()
                 }
                 .show()
         }
 
-        // Logic chọn Giao diện (Luôn hoạt động dù đăng nhập hay chưa)
+        // Logic Theme
         val sharedPref = requireActivity().getSharedPreferences("settings", Context.MODE_PRIVATE)
         val savedMode = sharedPref.getInt("theme_mode", AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
         tvThemeStatus?.text = getThemeName(savedMode)
