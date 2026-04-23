@@ -74,6 +74,23 @@
             android:textColor="@color/text_primary" />
     </RadioGroup>
 
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/tilCategoryBudget"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:hint="Ngân sách tháng (nhóm chi tiêu)"
+        app:helperText="Để trống nếu chưa muốn đặt ngân sách">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etCategoryBudget"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="number"
+            android:maxLines="1" />
+    </com.google.android.material.textfield.TextInputLayout>
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

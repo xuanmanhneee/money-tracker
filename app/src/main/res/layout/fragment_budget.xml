@@ -35,6 +35,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
         android:orientation="horizontal"
+        android:visibility="gone"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tvScreenTitle">
@@ -65,7 +66,7 @@
         android:id="@+id/groupContent"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:constraint_referenced_ids="cardBudgetSummary,tvBudgetAlert,tvComparison,tvCategorySectionTitle,rvBudgetCategories" />
+        app:constraint_referenced_ids="cardBudgetSummary,tvBudgetAlert,tvComparison,tvForecast,tvCategorySectionTitle,rvBudgetCategories" />
 
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cardBudgetSummary"
@@ -110,7 +111,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:text="Chế độ tự động"
+                android:text="Tổng tự động từ ngân sách từng danh mục"
                 android:textColor="@color/status_warning"
                 android:textSize="12sp"
                 android:textStyle="bold" />
@@ -120,7 +121,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
-                android:text="Tổng ngân sách"
+                android:text="Tổng ngân sách tự động (từ danh mục)"
                 android:textColor="@color/text_secondary"
                 android:textSize="13sp" />
 
@@ -247,16 +248,29 @@
         app:layout_constraintTop_toBottomOf="@id/tvBudgetAlert" />
 
     <TextView
+        android:id="@+id/tvForecast"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:textColor="@color/text_secondary"
+        android:textSize="13sp"
+        android:textStyle="bold"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvComparison" />
+
+    <TextView
         android:id="@+id/tvCategorySectionTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
-        android:text="Phân bổ theo danh mục"
+        android:text="Phân bổ theo danh mục (chạm để chỉnh)"
         android:textColor="@color/text_primary"
         android:textSize="16sp"
         android:textStyle="bold"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tvComparison" />
+        app:layout_constraintTop_toBottomOf="@id/tvForecast" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvBudgetCategories"

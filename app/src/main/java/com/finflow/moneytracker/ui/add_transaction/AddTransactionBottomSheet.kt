@@ -20,6 +20,7 @@ import com.finflow.moneytracker.R
 import com.finflow.moneytracker.data.local.entity.Category
 import com.finflow.moneytracker.data.local.entity.Transaction
 import com.finflow.moneytracker.data.local.entity.Wallet
+import com.finflow.moneytracker.ui.common.CurrencyInputFormatter
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
@@ -27,7 +28,6 @@ import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.abs
 import kotlin.math.round
-import kotlin.math.roundToLong
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
@@ -100,6 +100,7 @@ class AddTransactionBottomSheet : BottomSheetDialogFragment(),
         btnSelectPaymentMethod = view.findViewById(R.id.btnSelectPaymentMethod)
         tvPaymentMethod = view.findViewById(R.id.tvPaymentMethod)
         btnAddExpense = view.findViewById(R.id.btnAddExpense)
+        CurrencyInputFormatter.attach(etAmountInput)
 
         updateDate()
 
@@ -154,14 +155,12 @@ class AddTransactionBottomSheet : BottomSheetDialogFragment(),
     }
 
     private fun calculateWorkHours() {
-        val amountText = etAmountInput.text.toString().trim()
-
-        if (amountText.isEmpty()) {
+        val amount = CurrencyInputFormatter.parseAmountOrNull(etAmountInput)?.toDouble()
+        if (amount == null || amount <= 0.0) {
             tvWorkHours.text = "≈ 0 giờ làm việc"
             return
         }
 
-        val amount = amountText.toDoubleOrNull() ?: 0.0
         val hours = amount / HOURLY_WAGE
         val roundedHours = round(hours * 100) / 100  // Làm tròn 2 chữ số thập phân
 
@@ -208,8 +207,7 @@ class AddTransactionBottomSheet : BottomSheetDialogFragment(),
 
     private fun saveTransaction() {
         // Kiểm tra validation
-        val amountText = etAmountInput.text.toString().trim()
-        if (amountText.isEmpty()) {
+        if (!CurrencyInputFormatter.hasAnyDigit(etAmountInput)) {
             Toast.makeText(requireContext(), "Vui lòng nhập số tiền", Toast.LENGTH_SHORT).show()
             return
         }
@@ -219,13 +217,13 @@ class AddTransactionBottomSheet : BottomSheetDialogFragment(),
             return
         }
 
-        val amount = amountText.toDoubleOrNull() ?: 0.0
-        if (amount <= 0) {
+        val amount = CurrencyInputFormatter.parseAmountOrNull(etAmountInput)
+        if (amount == null || amount <= 0L) {
             Toast.makeText(requireContext(), "Số tiền phải lớn hơn 0", Toast.LENGTH_SHORT).show()
             return
         }
 
-        val baseAmount = amount.roundToLong()
+        val baseAmount = amount
         val isExpense = selectedCategory?.type == TYPE_EXPENSE
         val signedAmount = if (isExpense) -abs(baseAmount) else abs(baseAmount)
 

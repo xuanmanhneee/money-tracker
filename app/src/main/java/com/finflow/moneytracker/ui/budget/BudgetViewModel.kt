@@ -17,6 +17,7 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 import kotlin.math.abs
+import kotlin.math.ceil
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -24,7 +25,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -50,6 +50,7 @@ data class BudgetUiState(
     val periodLabel: String = "",
     val budgetName: String = "",
     val walletName: String = "",
+    val walletScopeLabel: String = "",
     val plannedBudget: Long = 0L,
     val totalBudget: Long = 0L,
     val spent: Long = 0L,
@@ -62,6 +63,7 @@ data class BudgetUiState(
     val progressState: BudgetProgressState = BudgetProgressState.SAFE,
     val alertMessage: String? = null,
     val comparisonMessage: String? = null,
+    val burnRateForecastMessage: String? = null,
     val categoryProgress: List<BudgetCategoryProgressUi> = emptyList()
 )
 
@@ -81,23 +83,15 @@ class BudgetViewModel(
 
     companion object {
         private const val TYPE_EXPENSE = 0
-        private const val DEFAULT_PLANNED_BUDGET = 5_000_000L
         private const val DEFAULT_LOCAL_USER = "local_user"
         private const val DEFAULT_WALLET_NAME = "Ví mặc định"
+        private const val DAY_MILLIS = 24L * 60L * 60L * 1000L
     }
 
     private val currentDateFlow = MutableStateFlow(System.currentTimeMillis())
 
     private val budgetFlow = currentDateFlow.flatMapLatest { date ->
         budgetRepository.getBudgetForDateStream(BudgetCycleType.MONTHLY, date)
-    }
-
-    private val allocationFlow = budgetFlow.flatMapLatest { budget ->
-        if (budget == null) {
-            flowOf(emptyList())
-        } else {
-            budgetRepository.getAllocationsByBudgetStream(budget.id)
-        }
     }
 
     private val combinedStaticDataFlow = combine(
@@ -114,9 +108,8 @@ class BudgetViewModel(
 
     val uiState: StateFlow<BudgetUiState> = combine(
         budgetFlow,
-        allocationFlow,
         combinedStaticDataFlow
-    ) { budget, allocations, staticData ->
+    ) { budget, staticData ->
 
         val wallets = staticData.wallets
         val categories = staticData.categories
@@ -132,6 +125,10 @@ class BudgetViewModel(
         }
 
         val expenseCategories = categories.filter { it.type == TYPE_EXPENSE }
+        val categoryLimitById = expenseCategories.associate { category ->
+            category.id to (category.monthlyBudgetLimit ?: 0L)
+        }
+        val categoryTotalBudget = categoryLimitById.values.sum()
         val expenseCategoryIds = expenseCategories.map { it.id }.toSet()
 
         val expenseTransactions = transactions.filter { tx ->
@@ -142,19 +139,22 @@ class BudgetViewModel(
         }
 
         val totalSpent = expenseTransactions.sumOf { abs(it.amount) }
-        val totalBudget = budget.plannedAmount + budget.carryOverAmount
+        val totalBudget = categoryTotalBudget
         val totalRemaining = totalBudget - totalSpent
         val usagePercent = percentage(totalSpent, totalBudget)
+        val walletName = wallets.firstOrNull { it.id == budget.walletId }?.name ?: "Tất cả ví"
+        val walletScopeLabel = if (budget.walletId == null) {
+            "Phạm vi ví: Tất cả ví"
+        } else {
+            "Phạm vi ví: $walletName"
+        }
 
-        val allocationByCategory = allocations.associateBy { it.categoryId }
         val spentByCategory = expenseTransactions
             .groupBy { it.categoryId }
             .mapValues { (_, txs) -> txs.sumOf { abs(it.amount) } }
 
         val categoryProgress = expenseCategories.map { category ->
-            val allocatedAmount = allocationByCategory[category.id]?.allocatedAmount
-                ?: category.monthlyBudgetLimit
-                ?: 0L
+            val allocatedAmount = categoryLimitById[category.id] ?: 0L
             val categorySpent = spentByCategory[category.id] ?: 0L
             val categoryRemaining = allocatedAmount - categorySpent
             val categoryUsage = percentage(categorySpent, allocatedAmount)
@@ -189,25 +189,33 @@ class BudgetViewModel(
                 "Chi tiêu $trend ${formatCurrency(abs(delta))} so với kỳ trước"
             }
         }
+        val burnRateForecastMessage = buildBurnRateForecastMessage(
+            periodStart = budget.periodStart,
+            periodEnd = budget.periodEnd,
+            totalSpent = totalSpent,
+            totalBudget = totalBudget
+        )
 
         BudgetUiState(
             isLoading = false,
             isEmpty = false,
             periodLabel = formatPeriodLabel(budget.periodStart),
             budgetName = budget.name,
-            walletName = wallets.firstOrNull { it.id == budget.walletId }?.name ?: "Tất cả ví",
-            plannedBudget = budget.plannedAmount,
+            walletName = walletName,
+            walletScopeLabel = walletScopeLabel,
+            plannedBudget = categoryTotalBudget,
             totalBudget = totalBudget,
             spent = totalSpent,
             remaining = totalRemaining,
             usagePercent = usagePercent,
-            isAutoGenerated = budget.isAutoGenerated,
-            isManualOverride = budget.manualOverride,
+            isAutoGenerated = true,
+            isManualOverride = false,
             canCreateManually = false,
-            canEditManually = true,
+            canEditManually = false,
             progressState = mapUsageToState(usagePercent),
-            alertMessage = buildAlertMessage(usagePercent),
+            alertMessage = buildAlertMessage(totalSpent, totalBudget),
             comparisonMessage = comparisonMessage,
+            burnRateForecastMessage = burnRateForecastMessage,
             categoryProgress = categoryProgress
         )
     }.stateIn(
@@ -219,28 +227,32 @@ class BudgetViewModel(
     init {
         viewModelScope.launch {
             ensureCurrentMonthlyBudget()
+            syncCurrentBudgetWithCategoryLimits()
         }
     }
 
     fun refreshCurrentPeriod() {
-        currentDateFlow.value = System.currentTimeMillis()
-    }
-
-    fun createManualBudget(plannedAmount: Long) {
-        if (plannedAmount <= 0L) {
-            return
-        }
         viewModelScope.launch {
-            upsertManualBudget(plannedAmount)
+            syncCurrentBudgetWithCategoryLimits()
+            currentDateFlow.value = System.currentTimeMillis()
         }
     }
 
-    fun editCurrentBudget(plannedAmount: Long) {
-        if (plannedAmount <= 0L) {
+    fun updateCategoryBudgetLimit(categoryId: String, monthlyBudgetLimit: Long) {
+        if (monthlyBudgetLimit < 0L) {
             return
         }
+
         viewModelScope.launch {
-            upsertManualBudget(plannedAmount)
+            val categories = categoryRepository.getAllCategoriesStream().first()
+            val targetCategory = categories.firstOrNull {
+                it.id == categoryId && it.type == TYPE_EXPENSE
+            } ?: return@launch
+
+            categoryRepository.updateCategory(
+                targetCategory.copy(monthlyBudgetLimit = monthlyBudgetLimit)
+            )
+            syncCurrentBudgetWithCategoryLimits()
         }
     }
 
@@ -259,12 +271,7 @@ class BudgetViewModel(
         val defaultWallet = getOrCreateDefaultWallet()
         val (periodStart, periodEnd) = getMonthRange(now)
 
-        val budgetFromCategoryLimit = expenseCategories.sumOf { it.monthlyBudgetLimit ?: 0L }
-        val plannedAmount = if (budgetFromCategoryLimit > 0L) {
-            budgetFromCategoryLimit
-        } else {
-            DEFAULT_PLANNED_BUDGET
-        }
+        val plannedAmount = expenseCategories.sumOf { it.monthlyBudgetLimit ?: 0L }
 
         val newBudget = Budget(
             userId = defaultWallet.userId,
@@ -282,17 +289,13 @@ class BudgetViewModel(
         )
         budgetRepository.insertBudget(newBudget)
 
-        if (expenseCategories.isNotEmpty()) {
-                val allocations = buildBalancedAllocations(
-                budgetId = newBudget.id,
-                expenseCategories = expenseCategories,
-                plannedAmount = plannedAmount
-            )
-            budgetRepository.upsertAllocations(newBudget.id, allocations)
-        }
+        budgetRepository.upsertAllocations(
+            newBudget.id,
+            buildCategoryLimitAllocations(newBudget.id, expenseCategories)
+        )
     }
 
-    private suspend fun upsertManualBudget(plannedAmount: Long) {
+    private suspend fun syncCurrentBudgetWithCategoryLimits() {
         val now = System.currentTimeMillis()
         val existingBudget = budgetRepository
             .getBudgetForDateStream(BudgetCycleType.MONTHLY, now)
@@ -300,59 +303,60 @@ class BudgetViewModel(
 
         val categories = categoryRepository.getAllCategoriesStream().first()
         val expenseCategories = categories.filter { it.type == TYPE_EXPENSE }
+        val totalCategoryLimit = expenseCategories.sumOf { it.monthlyBudgetLimit ?: 0L }
 
         if (existingBudget == null) {
             val defaultWallet = getOrCreateDefaultWallet()
             val (periodStart, periodEnd) = getMonthRange(now)
 
-            val manualBudget = Budget(
+            val autoBudget = Budget(
                 userId = defaultWallet.userId,
                 walletId = defaultWallet.id,
                 name = "Ngân sách tháng",
                 cycleType = BudgetCycleType.MONTHLY,
                 periodStart = periodStart,
                 periodEnd = periodEnd,
-                plannedAmount = plannedAmount,
+                plannedAmount = totalCategoryLimit,
                 carryOverAmount = 0L,
                 autoResetEnabled = true,
                 carryOverEnabled = true,
-                isAutoGenerated = false,
-                manualOverride = true
+                isAutoGenerated = true,
+                manualOverride = false
             )
-            budgetRepository.insertBudget(manualBudget)
-
-            if (expenseCategories.isNotEmpty()) {
-                val allocations = buildBalancedAllocations(
-                    budgetId = manualBudget.id,
-                    expenseCategories = expenseCategories,
-                    plannedAmount = plannedAmount
-                )
-                budgetRepository.upsertAllocations(manualBudget.id, allocations)
-            }
+            budgetRepository.insertBudget(autoBudget)
+            budgetRepository.upsertAllocations(
+                autoBudget.id,
+                buildCategoryLimitAllocations(autoBudget.id, expenseCategories)
+            )
             return
         }
 
-        val updatedBudget = existingBudget.copy(
-            plannedAmount = plannedAmount,
-            isAutoGenerated = false,
-            manualOverride = true
-        )
-        budgetRepository.updateBudget(updatedBudget)
+        val needsBudgetUpdate =
+            existingBudget.plannedAmount != totalCategoryLimit ||
+                existingBudget.isAutoGenerated.not() ||
+                existingBudget.manualOverride
 
+        if (needsBudgetUpdate) {
+            budgetRepository.updateBudget(
+                existingBudget.copy(
+                    plannedAmount = totalCategoryLimit,
+                    isAutoGenerated = true,
+                    manualOverride = false
+                )
+            )
+        }
+
+        val desiredAllocations = buildCategoryLimitAllocations(existingBudget.id, expenseCategories)
         val currentAllocations = budgetRepository
             .getAllocationsByBudgetStream(existingBudget.id)
             .first()
-        if (expenseCategories.isNotEmpty()) {
-            val currentAllocationWeights = currentAllocations.associate { allocation ->
-                allocation.categoryId to allocation.allocatedAmount
-            }
-            val allocations = buildBalancedAllocations(
-                budgetId = existingBudget.id,
-                expenseCategories = expenseCategories,
-                plannedAmount = plannedAmount,
-                weightByCategoryId = currentAllocationWeights
-            )
-            budgetRepository.upsertAllocations(existingBudget.id, allocations)
+            .associate { allocation -> allocation.categoryId to allocation.allocatedAmount }
+        val desiredAllocationMap = desiredAllocations.associate { allocation ->
+            allocation.categoryId to allocation.allocatedAmount
+        }
+
+        if (currentAllocations != desiredAllocationMap) {
+            budgetRepository.upsertAllocations(existingBudget.id, desiredAllocations)
         }
     }
 
@@ -371,57 +375,15 @@ class BudgetViewModel(
         return createdWallet
     }
 
-    private fun buildBalancedAllocations(
+    private fun buildCategoryLimitAllocations(
         budgetId: String,
-        expenseCategories: List<Category>,
-        plannedAmount: Long,
-        weightByCategoryId: Map<String, Long> = emptyMap()
+        expenseCategories: List<Category>
     ): List<BudgetAllocation> {
-        if (expenseCategories.isEmpty()) {
-            return emptyList()
-        }
-
-        val safePlannedAmount = plannedAmount.coerceAtLeast(0L)
-        val hasCustomWeights = weightByCategoryId.isNotEmpty()
-        val rawWeights = expenseCategories.map { category ->
-            val customWeight = weightByCategoryId[category.id]
-            val defaultWeight = category.monthlyBudgetLimit
-            when {
-                hasCustomWeights -> customWeight ?: 0L
-                else -> defaultWeight ?: 0L
-            }.coerceAtLeast(0L)
-        }
-        val totalWeight = rawWeights.sum()
-
-        val allocatedValues = if (totalWeight > 0L) {
-            var distributed = 0L
-            rawWeights.mapIndexed { index, weight ->
-                if (index == rawWeights.lastIndex) {
-                    (safePlannedAmount - distributed).coerceAtLeast(0L)
-                } else {
-                    val value = (safePlannedAmount.toDouble() * weight.toDouble() / totalWeight.toDouble())
-                        .toLong()
-                        .coerceAtLeast(0L)
-                    distributed += value
-                    value
-                }
-            }
-        } else {
-            val evenAmount = safePlannedAmount / expenseCategories.size
-            expenseCategories.mapIndexed { index, _ ->
-                if (index == expenseCategories.lastIndex) {
-                    safePlannedAmount - (evenAmount * (expenseCategories.size - 1))
-                } else {
-                    evenAmount
-                }
-            }
-        }
-
-        return expenseCategories.mapIndexed { index, category ->
+        return expenseCategories.map { category ->
             BudgetAllocation(
                 budgetId = budgetId,
                 categoryId = category.id,
-                allocatedAmount = allocatedValues[index]
+                allocatedAmount = (category.monthlyBudgetLimit ?: 0L).coerceAtLeast(0L)
             )
         }
     }
@@ -462,17 +424,65 @@ class BudgetViewModel(
 
     private fun mapUsageToState(usagePercent: Int): BudgetProgressState {
         return when {
-            usagePercent >= 100 -> BudgetProgressState.DANGER
+            usagePercent > 100 -> BudgetProgressState.DANGER
             usagePercent >= 80 -> BudgetProgressState.WARNING
             else -> BudgetProgressState.SAFE
         }
     }
 
-    private fun buildAlertMessage(usagePercent: Int): String? {
+    private fun buildAlertMessage(totalSpent: Long, totalBudget: Long): String? {
+        if (totalBudget <= 0L) {
+            return if (totalSpent > 0L) {
+                "Bạn đang chi tiêu nhưng chưa đặt ngân sách danh mục"
+            } else {
+                null
+            }
+        }
+
+        val usagePercent = percentage(totalSpent, totalBudget)
         return when {
-            usagePercent >= 100 -> "Bạn đã vượt ngân sách kỳ này"
-            usagePercent >= 80 -> "Bạn đã dùng hơn 80% ngân sách"
+            totalSpent > totalBudget -> {
+                val overAmount = totalSpent - totalBudget
+                "Bạn đã vượt ${formatCurrency(overAmount)} so với ngân sách tháng"
+            }
+            totalSpent == totalBudget -> "Bạn đã chạm ngưỡng 100% ngân sách tháng"
+            usagePercent >= 80 -> "Bạn đã dùng hơn 80% ngân sách tháng"
             else -> null
+        }
+    }
+
+    private fun buildBurnRateForecastMessage(
+        periodStart: Long,
+        periodEnd: Long,
+        totalSpent: Long,
+        totalBudget: Long
+    ): String? {
+        if (totalBudget <= 0L) {
+            return null
+        }
+        if (totalSpent <= 0L) {
+            return "Chưa đủ dữ liệu chi tiêu để dự báo chạm trần"
+        }
+
+        val now = System.currentTimeMillis().coerceIn(periodStart, periodEnd)
+        val elapsedDays = (((now - periodStart) / DAY_MILLIS) + 1L).coerceAtLeast(1L)
+        val dailyBurnRate = totalSpent.toDouble() / elapsedDays.toDouble()
+        if (dailyBurnRate <= 0.0) {
+            return null
+        }
+
+        val remaining = (totalBudget - totalSpent).coerceAtLeast(0L)
+        if (remaining == 0L) {
+            return "Bạn đã chạm trần ngân sách ở kỳ hiện tại"
+        }
+
+        val daysToHitCap = ceil(remaining.toDouble() / dailyBurnRate).toLong().coerceAtLeast(1L)
+        val projectedHitDate = now + (daysToHitCap * DAY_MILLIS)
+
+        return if (projectedHitDate <= periodEnd) {
+            "Với tốc độ hiện tại, có thể chạm trần sau $daysToHitCap ngày (${formatShortDate(projectedHitDate)})"
+        } else {
+            "Với tốc độ hiện tại, có thể chưa chạm trần trong kỳ này"
         }
     }
 
@@ -483,5 +493,9 @@ class BudgetViewModel(
     private fun formatCurrency(value: Long): String {
         val formatter = NumberFormat.getCurrencyInstance(Locale("vi", "VN"))
         return formatter.format(value).replace("₫", "").trim() + " ₫"
+    }
+
+    private fun formatShortDate(dateMillis: Long): String {
+        return SimpleDateFormat("dd/MM", Locale("vi", "VN")).format(dateMillis)
     }
 }
