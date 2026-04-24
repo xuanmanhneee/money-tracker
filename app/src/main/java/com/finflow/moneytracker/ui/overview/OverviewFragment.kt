@@ -173,13 +173,18 @@ class OverviewFragment : Fragment(R.layout.fragment_overview){
             setDrawGridBackground(false)
             setBackgroundColor(Color.TRANSPARENT)
 
+            setViewPortOffsets(35f, 0f, 35f, 0f)
+
             xAxis.apply {
                 position = XAxis.XAxisPosition.BOTTOM
                 this.textColor = textColor
                 setDrawGridLines(false)
-                axisMinimum = 1f
-                axisMaximum = 31f
+                setDrawAxisLine(false)
+                axisMinimum = entries.first().x
+                axisMaximum = entries.last().x
             }
+
+
 
             axisLeft.apply {
                 this.textColor = textColor
@@ -189,8 +194,13 @@ class OverviewFragment : Fragment(R.layout.fragment_overview){
             }
 
             axisRight.isEnabled = false
+
+            // Vô hiệu hóa tương tác nếu chỉ muốn hiển thị tĩnh
+            setTouchEnabled(false)
+
             animateX(600)
             invalidate()
+
         }
     }
 }
