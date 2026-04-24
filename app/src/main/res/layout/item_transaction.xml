@@ -52,6 +52,20 @@
                 android:layout_height="wrap_content"
                 android:text="16/03/2026"
                 android:textSize="10sp" />
+
+            <TextView
+                android:id="@+id/tvPaymentMethod"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:background="@drawable/bg_transaction_payment_chip"
+                android:paddingStart="8dp"
+                android:paddingTop="2dp"
+                android:paddingEnd="8dp"
+                android:paddingBottom="2dp"
+                android:text="Tiền mặt"
+                android:textColor="@color/chip_payment_cash_text"
+                android:textSize="10sp" />
         </LinearLayout>
 
         <TextView

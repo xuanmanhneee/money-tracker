@@ -18,6 +18,7 @@ import com.finflow.moneytracker.MoneyTrackerApplication
 import com.finflow.moneytracker.R
 import com.finflow.moneytracker.data.local.entity.Category
 import com.finflow.moneytracker.data.local.entity.Transaction
+import com.finflow.moneytracker.data.local.entity.Wallet
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
@@ -36,6 +37,10 @@ class TransactionDetailFragment(private val transaction: Transaction) : BottomSh
 
     companion object {
         private const val TYPE_EXPENSE = 0
+        private const val DEFAULT_LOCAL_USER = "local_user"
+        private const val CASH_WALLET_NAME = "Tiền mặt"
+        private const val BANK_WALLET_NAME = "Ngân hàng"
+        private const val LEGACY_DEFAULT_WALLET_NAME = "Ví mặc định"
     }
 
     private lateinit var ivBackDetail: ImageView
@@ -65,6 +70,7 @@ class TransactionDetailFragment(private val transaction: Transaction) : BottomSh
 
     private val transactionRepository by lazy { appContainer.transactionRepository }
     private val categoryRepository by lazy { appContainer.categoryRepository }
+    private val walletRepository by lazy { appContainer.walletRepository }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -100,9 +106,8 @@ class TransactionDetailFragment(private val transaction: Transaction) : BottomSh
 
         etDetailAmount.setText(abs(transaction.amount).toString())
         etDetailNotes.setText(transaction.note.orEmpty())
-        tvDetailPaymentMethod.text = selectedPaymentMethod.displayName
         calculateWorkHours()
-        loadInitialCategory()
+        loadInitialData()
 
         ivBackDetail.setOnClickListener {
             dismiss()
@@ -149,11 +154,19 @@ class TransactionDetailFragment(private val transaction: Transaction) : BottomSh
         }
     }
 
-    private fun loadInitialCategory() {
+    private fun loadInitialData() {
         lifecycleScope.launch {
             val categories = categoryRepository.getAllCategoriesStream().first()
             selectedCategory = categories.firstOrNull { it.id == transaction.categoryId }
             tvDetailCategory.text = selectedCategory?.name ?: "Danh mục #${transaction.categoryId}"
+
+            val wallets = walletRepository.getWalletsStream().first()
+            val selectedWallet = wallets.firstOrNull { it.id == transaction.walletId }
+            selectedPaymentMethod = when {
+                selectedWallet?.name.equals(BANK_WALLET_NAME, ignoreCase = true) -> PaymentMethod.BANK
+                else -> PaymentMethod.CASH
+            }
+            tvDetailPaymentMethod.text = selectedPaymentMethod.displayName
         }
     }
 
@@ -236,22 +249,61 @@ class TransactionDetailFragment(private val transaction: Transaction) : BottomSh
         val isExpense = selectedCategory?.type == TYPE_EXPENSE
         val signedAmount = if (isExpense) -abs(baseAmount) else abs(baseAmount)
 
-        val updatedTransaction = Transaction(
-            id = transaction.id,
-            walletId = transaction.walletId,
-            categoryId = selectedCategory!!.id,
-            amount = signedAmount,
-            date = calendar.timeInMillis,
-            note = etDetailNotes.text.toString().trim(),
-            receiptImagePath = transaction.receiptImagePath,
-            toWalletId = transaction.toWalletId
-        )
-
         lifecycleScope.launch {
+            val selectedWallet = getOrCreateWalletForPaymentMethod(selectedPaymentMethod)
+
+            val updatedTransaction = Transaction(
+                id = transaction.id,
+                walletId = selectedWallet.id,
+                categoryId = selectedCategory!!.id,
+                amount = signedAmount,
+                date = calendar.timeInMillis,
+                note = etDetailNotes.text.toString().trim(),
+                receiptImagePath = transaction.receiptImagePath,
+                toWalletId = transaction.toWalletId
+            )
+
             transactionRepository.updateTransaction(updatedTransaction)
             Toast.makeText(requireContext(), "Cập nhật giao dịch thành công", Toast.LENGTH_SHORT).show()
             dismiss()
         }
+    }
+
+    private suspend fun getOrCreateWalletForPaymentMethod(paymentMethod: PaymentMethod): Wallet {
+        val wallets = walletRepository.getWalletsStream().first()
+        val targetWalletName = when (paymentMethod) {
+            PaymentMethod.CASH -> CASH_WALLET_NAME
+            PaymentMethod.BANK -> BANK_WALLET_NAME
+        }
+
+        val exactWallet = wallets.firstOrNull { wallet ->
+            wallet.name.equals(targetWalletName, ignoreCase = true)
+        }
+        if (exactWallet != null) {
+            return exactWallet
+        }
+
+        if (paymentMethod == PaymentMethod.CASH) {
+            val legacyWallet = wallets.firstOrNull { wallet ->
+                wallet.name.equals(LEGACY_DEFAULT_WALLET_NAME, ignoreCase = true)
+            }
+            if (legacyWallet != null) {
+                return legacyWallet
+            }
+
+            val firstWallet = wallets.firstOrNull()
+            if (firstWallet != null) {
+                return firstWallet
+            }
+        }
+
+        val createdWallet = Wallet(
+            userId = DEFAULT_LOCAL_USER,
+            name = targetWalletName,
+            balance = 0L
+        )
+        walletRepository.insertWallet(createdWallet)
+        return createdWallet
     }
 
     private fun deleteTransaction() {

@@ -24,6 +24,7 @@ import com.finflow.moneytracker.R
 import com.finflow.moneytracker.data.local.entity.Category
 import com.finflow.moneytracker.data.local.entity.Transaction
 import com.finflow.moneytracker.data.sync.FirestoreSyncWorker
+import com.finflow.moneytracker.data.local.entity.Wallet
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
@@ -42,7 +43,10 @@ class AddTransactionBottomSheet : BottomSheetDialogFragment(),
 
     companion object {
         private const val TYPE_EXPENSE = 0
-        private const val DEFAULT_WALLET_ID = "default_wallet_id"
+        private const val DEFAULT_LOCAL_USER = "local_user"
+        private const val CASH_WALLET_NAME = "Tiền mặt"
+        private const val BANK_WALLET_NAME = "Ngân hàng"
+        private const val LEGACY_DEFAULT_WALLET_NAME = "Ví mặc định"
     }
 
     private lateinit var ivBack: ImageView
@@ -64,6 +68,7 @@ class AddTransactionBottomSheet : BottomSheetDialogFragment(),
     private val calendar: Calendar = Calendar.getInstance()
     private val sdf = SimpleDateFormat("EEEE, dd/MM/yyyy", Locale("vi"))
 
+    // Lương mỗi giờ (tạm thời hardcode, sau sẽ lấy từ user settings)
     private val HOURLY_WAGE = 26000.0
 
     private val transactionRepository by lazy {
@@ -104,10 +109,12 @@ class AddTransactionBottomSheet : BottomSheetDialogFragment(),
 
         updateDate()
 
+        // Nút quay lại
         ivBack.setOnClickListener {
             dismiss()
         }
 
+        // Listener để tính số giờ làm việc khi nhập số tiền
         etAmountInput.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
 
@@ -132,14 +139,17 @@ class AddTransactionBottomSheet : BottomSheetDialogFragment(),
             showDatePicker()
         }
 
+        // Click listener để mở CategorySelectionFragment
         btnSelectCategory.setOnClickListener {
             showCategorySelectionFragment()
         }
 
+        // Click listener để mở PaymentMethodSelectionFragment
         btnSelectPaymentMethod.setOnClickListener {
             showPaymentMethodSelectionFragment()
         }
 
+        // Click listener để lưu giao dịch
         btnAddExpense.setOnClickListener {
             saveTransaction()
         }
@@ -159,7 +169,7 @@ class AddTransactionBottomSheet : BottomSheetDialogFragment(),
 
         val amount = amountText.toDoubleOrNull() ?: 0.0
         val hours = amount / HOURLY_WAGE
-        val roundedHours = round(hours * 100) / 100
+        val roundedHours = round(hours * 100) / 100  // Làm tròn 2 chữ số thập phân
 
         tvWorkHours.text = "≈ $roundedHours giờ làm việc"
     }
@@ -203,6 +213,7 @@ class AddTransactionBottomSheet : BottomSheetDialogFragment(),
     }
 
     private fun saveTransaction() {
+        // Kiểm tra validation
         val amountText = etAmountInput.text.toString().trim()
         if (amountText.isEmpty()) {
             Toast.makeText(requireContext(), "Vui lòng nhập số tiền", Toast.LENGTH_SHORT).show()
@@ -220,42 +231,70 @@ class AddTransactionBottomSheet : BottomSheetDialogFragment(),
             return
         }
 
-        val currentUserId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
-        
         val baseAmount = amount.roundToLong()
         val isExpense = selectedCategory?.type == TYPE_EXPENSE
         val signedAmount = if (isExpense) -abs(baseAmount) else abs(baseAmount)
 
-        val transaction = Transaction(
-            userId = currentUserId,
-            walletId = DEFAULT_WALLET_ID,
-            categoryId = selectedCategory!!.id,
-            amount = signedAmount,
-            date = calendar.timeInMillis,
-            note = etNotes.text.toString().trim(),
-            receiptImagePath = null,
-            toWalletId = null
-        )
-
         lifecycleScope.launch {
-            // 1. Lưu giao dịch
-            transactionRepository.insertTransaction(transaction)
-            
-            // 2. Cập nhật số dư ví bằng cách lấy object về và sửa
-            val wallet = walletRepository.getWalletStream(DEFAULT_WALLET_ID).first()
-            if (wallet != null) {
-                val updatedWallet = wallet.copy(
-                    balance = wallet.balance + signedAmount
-                )
-                walletRepository.updateWallet(updatedWallet)
-            }
-            
-            // 3. Kích hoạt đồng bộ Cloud
-            triggerSync()
+            val selectedWallet = getOrCreateWalletForPaymentMethod(selectedPaymentMethod)
 
-            Toast.makeText(requireContext(), "Đã lưu và cập nhật số dư ví", Toast.LENGTH_SHORT).show()
+            // Tạo transaction với ví đang có trong hệ thống
+            val transaction = Transaction(
+                walletId = selectedWallet.id,
+                categoryId = selectedCategory!!.id,
+                amount = signedAmount,
+                date = calendar.timeInMillis,
+                note = etNotes.text.toString().trim(),
+                receiptImagePath = null,
+                toWalletId = null
+            )
+
+            transactionRepository.insertTransaction(transaction)
+
+            // Thông báo thành công
+            val message = "Lưu giao dịch thành công: ${selectedCategory!!.name}"
+            Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
+
+            // Đóng bottom sheet
             dismiss()
         }
+    }
+
+    private suspend fun getOrCreateWalletForPaymentMethod(paymentMethod: PaymentMethod): Wallet {
+        val wallets = walletRepository.getWalletsStream().first()
+        val targetWalletName = when (paymentMethod) {
+            PaymentMethod.CASH -> CASH_WALLET_NAME
+            PaymentMethod.BANK -> BANK_WALLET_NAME
+        }
+
+        val exactWallet = wallets.firstOrNull { wallet ->
+            wallet.name.equals(targetWalletName, ignoreCase = true)
+        }
+        if (exactWallet != null) {
+            return exactWallet
+        }
+
+        if (paymentMethod == PaymentMethod.CASH) {
+            val legacyWallet = wallets.firstOrNull { wallet ->
+                wallet.name.equals(LEGACY_DEFAULT_WALLET_NAME, ignoreCase = true)
+            }
+            if (legacyWallet != null) {
+                return legacyWallet
+            }
+
+            val firstWallet = wallets.firstOrNull()
+            if (firstWallet != null) {
+                return firstWallet
+            }
+        }
+
+        val createdWallet = Wallet(
+            userId = DEFAULT_LOCAL_USER,
+            name = targetWalletName,
+            balance = 0L
+        )
+        walletRepository.insertWallet(createdWallet)
+        return createdWallet
     }
 
     private fun triggerSync() {
@@ -273,9 +312,14 @@ class AddTransactionBottomSheet : BottomSheetDialogFragment(),
 
     override fun onStart() {
         super.onStart()
+
         val dialog = dialog as? BottomSheetDialog ?: return
-        val bottomSheet = dialog.findViewById<View>(com.google.android.material.R.id.design_bottom_sheet) ?: return
+        val bottomSheet =
+            dialog.findViewById<View>(com.google.android.material.R.id.design_bottom_sheet)
+                ?: return
+
         bottomSheet.layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
+
         val behavior = BottomSheetBehavior.from(bottomSheet)
         behavior.apply {
             state = BottomSheetBehavior.STATE_EXPANDED
