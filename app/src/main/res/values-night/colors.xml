@@ -2,4 +2,12 @@
 <resources>
     <!-- Màu xám cho divider khi không được chọn ở giao diện Tối -->
     <color name="divider_inactive">#444444</color>
+
+    <!-- Payment chips: high-contrast palette for dark theme -->
+    <color name="chip_payment_cash_bg">#1C4E37</color>
+    <color name="chip_payment_cash_text">#D5FFE2</color>
+    <color name="chip_payment_bank_bg">#1A355A</color>
+    <color name="chip_payment_bank_text">#D9E8FF</color>
+    <color name="chip_payment_other_bg">#2A3644</color>
+    <color name="chip_payment_other_text">#E2E9F1</color>
 </resources>

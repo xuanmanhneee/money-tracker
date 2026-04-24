@@ -1,6 +1,20 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
     <style name="Base.Theme.MoneyTracker" parent="Theme.Material3.DayNight.NoActionBar">
-        <item name="colorSurface">#121212</item>
+        <item name="android:windowBackground">@color/bg_white</item>
+        <item name="colorPrimary">@color/bg_button</item>
+        <item name="colorOnPrimary">@color/text_button</item>
+        <item name="colorSecondary">@color/accent_info</item>
+        <item name="colorSurface">@color/surface_card</item>
+        <item name="colorSurfaceContainer">@color/surface_card_alt</item>
+        <item name="colorOutline">@color/outline_soft</item>
+        <item name="bottomNavigationStyle">@style/Widget.MoneyTracker.BottomNavigation</item>
+    </style>
+
+    <style name="Widget.MoneyTracker.BottomNavigation" parent="Widget.Material3.BottomNavigationView">
+        <item name="android:background">@drawable/bg_bottom_nav</item>
+        <item name="itemIconTint">@color/nav_item_color</item>
+        <item name="itemTextColor">@color/nav_item_color</item>
+        <item name="itemRippleColor">@color/ripple_soft</item>
     </style>
 </resources>

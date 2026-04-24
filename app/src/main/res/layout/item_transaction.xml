@@ -7,8 +7,11 @@
     android:layout_marginEnd="16dp"
     android:layout_marginTop="4dp"
     android:layout_marginBottom="4dp"
-    app:cardCornerRadius="8dp"
-    app:cardElevation="1dp">
+    app:cardBackgroundColor="@color/surface_card"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="0dp"
+    app:strokeColor="@color/outline_soft"
+    app:strokeWidth="1dp">
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -20,6 +23,8 @@
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:layout_centerVertical="true"
+            android:background="@color/surface_card_alt"
+            android:padding="8dp"
             android:src="@drawable/ic_category_default" />
 
         <LinearLayout
@@ -36,7 +41,8 @@
                 android:layout_height="wrap_content"
                 android:text="Ăn uống"
                 android:textStyle="bold"
-                android:textSize="16sp" />
+                android:textSize="16sp"
+                android:textColor="@color/text_primary" />
 
             <TextView
                 android:id="@+id/tvNote"
@@ -44,14 +50,15 @@
                 android:layout_height="wrap_content"
                 android:text="Ăn trưa phở bò"
                 android:textSize="12sp"
-                android:textColor="#757575" />
+                android:textColor="@color/text_secondary" />
 
             <TextView
                 android:id="@+id/tvDate"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="16/03/2026"
-                android:textSize="10sp" />
+                android:textSize="10sp"
+                android:textColor="@color/text_hint" />
 
             <TextView
                 android:id="@+id/tvPaymentMethod"
@@ -77,7 +84,7 @@
             android:text="-50.000đ"
             android:textStyle="bold"
             android:textSize="16sp"
-            android:textColor="#F44336" />
+            android:textColor="@color/status_expense" />
 
     </RelativeLayout>
 </com.google.android.material.card.MaterialCardView>

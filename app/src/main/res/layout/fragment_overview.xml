@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?attr/colorSurfaceContainerLowest"
+    android:background="@color/bg_white"
     android:fillViewport="true">
 
     <LinearLayout
@@ -33,7 +33,7 @@
                     android:layout_height="wrap_content"
                     android:maxLines="1"
                     android:text="0 ₫"
-                    android:textColor="?android:attr/textColorPrimary"
+                    android:textColor="@color/text_primary"
                     android:textSize="32sp"
                     android:textStyle="bold"
                     app:autoSizeMaxTextSize="32sp"
@@ -48,7 +48,7 @@
                     android:padding="6dp"
                     android:layout_marginStart="8dp"
                     android:src="@drawable/view"
-                    app:tint="?android:attr/textColorPrimary" />
+                    app:tint="@color/text_primary" />
             </LinearLayout>
 
             <ImageButton
@@ -61,7 +61,7 @@
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:scaleType="fitCenter"
                 android:src="@drawable/search"
-                app:tint="?android:attr/textColorPrimary" />
+                app:tint="@color/text_secondary" />
 
             <ImageButton
                 android:id="@+id/btnNotification"
@@ -72,7 +72,7 @@
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:scaleType="fitCenter"
                 android:src="@drawable/notification"
-                app:tint="?android:attr/textColorPrimary" />
+                app:tint="@color/text_secondary" />
         </RelativeLayout>
 
         <TextView
@@ -80,7 +80,7 @@
             android:layout_height="wrap_content"
             android:text="Tổng số dư"
             android:layout_marginTop="4dp"
-            android:textColor="?android:attr/textColorSecondary"
+            android:textColor="@color/text_secondary"
             android:textSize="14sp" />
 
         <!-- Wallets Card -->
@@ -89,10 +89,11 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
             android:layout_marginBottom="20dp"
-            app:cardBackgroundColor="?attr/colorSurface"
+            app:cardBackgroundColor="@color/surface_card"
             app:cardCornerRadius="16dp"
-            app:cardElevation="2dp"
-            app:strokeWidth="0dp">
+            app:cardElevation="0dp"
+            app:strokeColor="@color/outline_soft"
+            app:strokeWidth="1dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -111,7 +112,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="Ví của tôi"
-                        android:textColor="?android:attr/textColorPrimary"
+                        android:textColor="@color/text_primary"
                         android:textSize="15sp"
                         android:textStyle="bold" />
 
@@ -120,7 +121,7 @@
                         android:layout_height="wrap_content"
                         android:padding="4dp"
                         android:text="Xem tất cả"
-                        android:textColor="@color/green"
+                        android:textColor="@color/bg_button"
                         android:textSize="14sp"
                         android:textStyle="bold" />
 
@@ -131,8 +132,7 @@
                     android:layout_height="1dp"
                     android:layout_marginTop="12dp"
                     android:layout_marginBottom="12dp"
-                    android:background="?android:attr/dividerVertical"
-                    android:alpha="0.2" />
+                    android:background="@color/divider" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -152,7 +152,7 @@
                         android:layout_marginStart="12dp"
                         android:layout_weight="1"
                         android:text="Tiền mặt"
-                        android:textColor="?android:attr/textColorPrimary"
+                        android:textColor="@color/text_primary"
                         android:textSize="15sp"
                         android:textStyle="bold" />
 
@@ -160,7 +160,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="0 ₫"
-                        android:textColor="?android:attr/textColorPrimary"
+                        android:textColor="@color/text_primary"
                         android:textSize="18sp"
                         android:textStyle="bold" />
                 </LinearLayout>
@@ -180,7 +180,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="Báo cáo tháng này"
-                android:textColor="?android:attr/textColorPrimary"
+                android:textColor="@color/text_primary"
                 android:textSize="15sp"
                 android:textStyle="bold" />
 
@@ -189,7 +189,7 @@
                 android:layout_height="wrap_content"
                 android:padding="4dp"
                 android:text="Xem báo cáo"
-                android:textColor="@color/green"
+                android:textColor="@color/bg_button"
                 android:textSize="14sp"
                 android:textStyle="bold" />
 
@@ -201,10 +201,11 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:layout_marginBottom="16dp"
-            app:cardBackgroundColor="?attr/colorSurface"
+            app:cardBackgroundColor="@color/surface_card"
             app:cardCornerRadius="16dp"
-            app:cardElevation="2dp"
-            app:strokeWidth="0dp">
+            app:cardElevation="0dp"
+            app:strokeColor="@color/outline_soft"
+            app:strokeWidth="1dp">
 
 
             <LinearLayout
@@ -232,7 +233,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Tổng chi"
-                            android:textColor="?android:attr/textColorPrimary"
+                            android:textColor="@color/text_primary"
                             android:textSize="14sp"
                             android:textStyle="bold" />
 
@@ -259,7 +260,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Tổng thu"
-                            android:textColor="?android:attr/textColorPrimary"
+                            android:textColor="@color/text_primary"
                             android:textSize="14sp"
                             android:textStyle="bold" />
 
@@ -317,10 +318,10 @@
                         android:id="@+id/rbThisMonth"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:buttonTint="?android:attr/textColorPrimary"
+                        android:buttonTint="@color/bg_button"
                         android:checked="true"
                         android:text="Tháng này"
-                        android:textColor="?android:attr/textColorPrimary"
+                        android:textColor="@color/text_primary"
                         android:textSize="14sp" />
 
                     <RadioButton
@@ -328,9 +329,9 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="24dp"
-                        android:buttonTint="?android:attr/textColorPrimary"
+                        android:buttonTint="@color/bg_button"
                         android:text="Tháng trước"
-                        android:textColor="?android:attr/textColorPrimary"
+                        android:textColor="@color/text_primary"
                         android:textSize="14sp" />
                 </RadioGroup>
 

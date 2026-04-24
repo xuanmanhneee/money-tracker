@@ -6,14 +6,16 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:gravity="center"
-    android:padding="8dp"
-    android:background="?attr/selectableItemBackground">
+    android:padding="10dp"
+    android:background="@drawable/bg_clickable_row">
 
     <ImageView
         android:id="@+id/ivCategoryIcon"
         android:layout_width="48dp"
         android:layout_height="48dp"
         android:layout_marginBottom="8dp"
+        android:background="@color/surface_card"
+        android:padding="8dp"
         android:contentDescription="Nhóm" />
 
     <TextView
@@ -22,6 +24,7 @@
         android:layout_height="wrap_content"
         android:textSize="14sp"
         android:textColor="@color/text_primary"
-        android:gravity="center" />
+        android:gravity="center"
+        android:textStyle="bold" />
 
 </LinearLayout>

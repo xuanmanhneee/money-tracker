@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?android:attr/windowBackground">
+    android:background="@color/bg_white">
 
     <!-- Top Bar -->
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -17,7 +17,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Tài khoản"
-            android:textColor="?android:attr/textColorPrimary"
+            android:textColor="@color/text_primary"
             android:textSize="20sp"
             android:textStyle="bold"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -50,12 +50,12 @@
                     android:id="@+id/iv_avatar_main"
                     android:layout_width="100dp"
                     android:layout_height="100dp"
-                    android:background="@color/white"
+                    android:background="@color/surface_card_alt"
                     android:padding="4dp"
                     android:scaleType="centerInside"
                     android:src="@drawable/user"
                     app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.App.Circle"
-                    app:strokeColor="?attr/colorOutline"
+                    app:strokeColor="@color/outline_soft"
                     app:strokeWidth="1dp" />
 
                 <LinearLayout
@@ -71,7 +71,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Phuocmai794"
-                        android:textColor="?android:attr/textColorPrimary"
+                        android:textColor="@color/text_primary"
                         android:textSize="20sp"
                         android:textStyle="bold" />
                     <TextView
@@ -80,7 +80,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
                         android:text="phuocmai794@gmail.com"
-                        android:textColor="?android:attr/textColorSecondary" />
+                        android:textColor="@color/text_secondary" />
                 </LinearLayout>
 
                 <Button
@@ -90,8 +90,8 @@
                     android:layout_marginTop="16dp"
                     android:text="Đăng nhập với Google"
                     android:textAllCaps="false"
-                    android:backgroundTint="?android:attr/textColorPrimary"
-                    android:textColor="?android:attr/windowBackground"
+                    android:backgroundTint="@color/bg_button"
+                    android:textColor="@color/text_button"
                     android:visibility="gone" />
 
             </LinearLayout>
@@ -109,7 +109,7 @@
                     android:layout_marginStart="4dp"
                     android:layout_marginBottom="12dp"
                     android:text="Cài đặt chung"
-                    android:textColor="?android:attr/textColorSecondary"
+                    android:textColor="@color/text_secondary"
                     android:textSize="12sp"
                     android:textStyle="bold" />
 
@@ -118,14 +118,15 @@
                     android:id="@+id/item_wallets_action"
                     android:layout_width="match_parent"
                     android:layout_height="64dp"
-                    android:background="?attr/selectableItemBackground"
+                    android:layout_marginBottom="8dp"
+                    android:background="@drawable/bg_clickable_row"
                     android:clickable="true"
                     android:paddingHorizontal="8dp">
                     <ImageView
                         android:id="@+id/iv_w_bg"
                         android:layout_width="36dp"
                         android:layout_height="36dp"
-                        android:background="#E8F5E9"
+                        android:background="@color/placeholder_transactions"
                         android:padding="8dp"
                         android:src="@drawable/wallet"
                         app:layout_constraintBottom_toBottomOf="parent"
@@ -136,7 +137,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginStart="16dp"
                         android:text="Ví của tôi"
-                        android:textColor="?android:attr/textColorPrimary"
+                        android:textColor="@color/text_primary"
                         android:textSize="16sp"
                         app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintStart_toEndOf="@id/iv_w_bg"
@@ -148,7 +149,7 @@
                         app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintTop_toTopOf="parent"
-                        app:tint="#BDBDBD" />
+                        app:tint="@color/text_secondary" />
                 </androidx.constraintlayout.widget.ConstraintLayout>
 
                 <!-- Item: Giao diện -->
@@ -156,26 +157,27 @@
                     android:id="@+id/item_theme_action"
                     android:layout_width="match_parent"
                     android:layout_height="64dp"
-                    android:background="?attr/selectableItemBackground"
+                    android:layout_marginBottom="8dp"
+                    android:background="@drawable/bg_clickable_row"
                     android:clickable="true"
                     android:paddingHorizontal="8dp">
                     <ImageView
                         android:id="@+id/iv_t_bg"
                         android:layout_width="36dp"
                         android:layout_height="36dp"
-                        android:background="#F3E5F5"
+                        android:background="@color/placeholder_account"
                         android:padding="8dp"
                         android:src="@drawable/view"
                         app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent"
-                        app:tint="#9C27B0" />
+                        app:tint="@color/accent_info" />
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="16dp"
                         android:text="Giao diện"
-                        android:textColor="?android:attr/textColorPrimary"
+                        android:textColor="@color/text_primary"
                         android:textSize="16sp"
                         app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintStart_toEndOf="@id/iv_t_bg"
@@ -186,7 +188,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="8dp"
                         android:text="Hệ thống"
-                        android:textColor="?android:attr/textColorSecondary"
+                        android:textColor="@color/text_secondary"
                         app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintEnd_toStartOf="@id/iv_arr_next"
                         app:layout_constraintTop_toTopOf="parent" />
@@ -198,7 +200,7 @@
                         app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintTop_toTopOf="parent"
-                        app:tint="#BDBDBD" />
+                        app:tint="@color/text_secondary" />
                 </androidx.constraintlayout.widget.ConstraintLayout>
 
                 <!-- Item: Đăng xuất -->
@@ -207,14 +209,14 @@
                     android:layout_width="match_parent"
                     android:layout_height="64dp"
                     android:layout_marginTop="8dp"
-                    android:background="?attr/selectableItemBackground"
+                    android:background="@drawable/bg_clickable_row"
                     android:clickable="true"
                     android:paddingHorizontal="8dp">
                     <ImageView
                         android:id="@+id/iv_l_bg"
                         android:layout_width="36dp"
                         android:layout_height="36dp"
-                        android:background="#FFEBEE"
+                        android:background="@color/placeholder_budget"
                         android:padding="8dp"
                         android:src="@drawable/ic_close"
                         app:layout_constraintBottom_toBottomOf="parent"
@@ -226,7 +228,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginStart="16dp"
                         android:text="Đăng xuất"
-                        android:textColor="@color/red"
+                        android:textColor="@color/status_expense"
                         android:textSize="16sp"
                         android:textStyle="bold"
                         app:layout_constraintBottom_toBottomOf="parent"

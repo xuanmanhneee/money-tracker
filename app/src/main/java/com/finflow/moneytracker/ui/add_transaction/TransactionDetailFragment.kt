@@ -204,7 +204,7 @@ class TransactionDetailFragment(private val transaction: Transaction) : BottomSh
     }
 
     private fun showCategorySelectionFragment() {
-        val fragment = CategorySelectionFragment()
+        val fragment = CategorySelectionFragment.newInstance(selectedCategory?.id)
         fragment.setOnCategorySelectedListener(this)
         fragment.show(parentFragmentManager, "CategorySelection")
     }
@@ -216,7 +216,7 @@ class TransactionDetailFragment(private val transaction: Transaction) : BottomSh
     }
 
     private fun showPaymentMethodSelectionFragment() {
-        val fragment = PaymentMethodSelectionFragment()
+        val fragment = PaymentMethodSelectionFragment.newInstance(selectedPaymentMethod)
         fragment.setOnPaymentMethodSelectedListener(this)
         fragment.show(parentFragmentManager, "PaymentMethodSelection")
     }
@@ -331,4 +331,6 @@ class TransactionDetailFragment(private val transaction: Transaction) : BottomSh
             isDraggable = false
         }
     }
+
+    override fun getTheme(): Int = R.style.ThemeOverlay_MoneyTracker_BottomSheet
 }
