@@ -2,7 +2,6 @@ package com.finflow.moneytracker.ui.budget
 
 import android.content.res.ColorStateList
 import android.os.Bundle
-import android.widget.TextView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -16,178 +15,121 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.finflow.moneytracker.R
 import com.finflow.moneytracker.databinding.FragmentBudgetBinding
 import com.finflow.moneytracker.di.AppViewModelProvider
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.google.android.material.textfield.TextInputEditText
-import com.google.android.material.textfield.TextInputLayout
 import java.text.NumberFormat
 import java.util.Locale
 import kotlinx.coroutines.launch
 
 class BudgetFragment : Fragment() {
 
-	private var _binding: FragmentBudgetBinding? = null
-	private val binding get() = _binding!!
+    private var _binding: FragmentBudgetBinding? = null
+    private val binding get() = _binding!!
 
-	private val viewModel: BudgetViewModel by viewModels {
-		AppViewModelProvider.Factory
-	}
+    private val viewModel: BudgetViewModel by viewModels {
+        AppViewModelProvider.Factory
+    }
 
-	private lateinit var categoryAdapter: BudgetCategoryAdapter
-	private var latestState: BudgetUiState = BudgetUiState()
+    private lateinit var categoryAdapter: BudgetCategoryAdapter
+    private var latestState: BudgetUiState = BudgetUiState()
 
-	override fun onCreateView(
-		inflater: LayoutInflater,
-		container: ViewGroup?,
-		savedInstanceState: Bundle?
-	): View {
-		_binding = FragmentBudgetBinding.inflate(inflater, container, false)
-		return binding.root
-	}
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        _binding = FragmentBudgetBinding.inflate(inflater, container, false)
+        return binding.root
+    }
 
-	override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-		super.onViewCreated(view, savedInstanceState)
-		setupRecyclerView()
-		setupActions()
-		observeUiState()
-	}
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        setupRecyclerView()
+        setupActions()
+        observeUiState()
+    }
 
-	override fun onResume() {
-		super.onResume()
-		viewModel.refreshCurrentPeriod()
-	}
+    override fun onResume() {
+        super.onResume()
+        viewModel.refreshCurrentPeriod()
+    }
 
-	private fun setupRecyclerView() {
-		categoryAdapter = BudgetCategoryAdapter()
-		binding.rvBudgetCategories.apply {
-			layoutManager = LinearLayoutManager(requireContext())
-			adapter = categoryAdapter
-		}
-	}
+    private fun setupRecyclerView() {
+        categoryAdapter = BudgetCategoryAdapter()
+        binding.rvBudgetCategories.apply {
+            layoutManager = LinearLayoutManager(requireContext())
+            adapter = categoryAdapter
+        }
+    }
 
-	private fun observeUiState() {
-		viewLifecycleOwner.lifecycleScope.launch {
-			viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-				viewModel.uiState.collect { state ->
-					latestState = state
-					renderState(state)
-				}
-			}
-		}
-	}
+    private fun observeUiState() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.uiState.collect { state ->
+                    latestState = state
+                    renderState(state)
+                }
+            }
+        }
+    }
 
-	private fun setupActions() {
-		binding.btnCreateManual.setOnClickListener {
-			showBudgetInputDialog(
-				title = "Tạo ngân sách thủ công",
-				defaultAmount = latestState.plannedBudget
-			) { amount ->
-				viewModel.createManualBudget(amount)
-			}
-		}
+    private fun setupActions() {
+        // Trong kiến trúc mới, ngân sách dựa trên hạn mức của từng category.
+        // Các nút chỉnh sửa ngân sách tổng sẽ được ẩn hoặc dẫn tới màn hình quản lý category.
+        binding.btnCreateManual.visibility = View.GONE
+        binding.btnEditBudget.visibility = View.GONE
+    }
 
-		binding.btnEditBudget.setOnClickListener {
-			showBudgetInputDialog(
-				title = "Chỉnh sửa ngân sách",
-				defaultAmount = latestState.plannedBudget
-			) { amount ->
-				viewModel.editCurrentBudget(amount)
-			}
-		}
-	}
+    private fun renderState(state: BudgetUiState) {
+        binding.tvBudgetPeriod.text = "Kỳ ${state.periodLabel}"
+        binding.tvBudgetName.text = "Ngân sách tháng"
+        binding.tvBudgetWallet.text = "Tất cả ví"
+        binding.tvBudgetMode.text = "Dựa trên hạn mức nhóm"
+        
+        // Cập nhật các trường số tiền
+        binding.tvTotalBudget.text = formatCurrency(state.plannedBudget)
+        binding.tvSpent.text = formatCurrency(state.spent)
+        binding.tvRemaining.text = formatCurrency(state.remaining)
+        binding.tvUsagePercent.text = "${state.usagePercent}%"
 
-	private fun renderState(state: BudgetUiState) {
-		binding.tvBudgetPeriod.text = "Kỳ ${state.periodLabel}"
-		binding.tvBudgetName.text = state.budgetName.ifBlank { "Ngân sách" }
-		binding.tvBudgetWallet.text = "Ví: ${state.walletName}"
-		binding.tvBudgetMode.text = when {
-			state.isManualOverride -> "Chế độ thủ công (ưu tiên)"
-			state.isAutoGenerated -> "Chế độ tự động"
-			else -> "Chế độ ngân sách"
-		}
-		binding.tvTotalBudget.text = formatCurrency(state.totalBudget)
-		binding.tvSpent.text = formatCurrency(state.spent)
-		binding.tvRemaining.text = formatCurrency(state.remaining)
-		binding.tvUsagePercent.text = "${state.usagePercent}%"
-		binding.btnCreateManual.visibility = if (state.canCreateManually) View.VISIBLE else View.GONE
-		binding.btnEditBudget.visibility = if (state.canEditManually) View.VISIBLE else View.GONE
+        // Màu sắc thanh tiến độ
+        binding.pbBudgetUsage.progress = state.usagePercent.coerceAtMost(100)
+        binding.pbBudgetUsage.progressTintList = ColorStateList.valueOf(
+            when (state.progressState) {
+                BudgetProgressState.SAFE -> ContextCompat.getColor(requireContext(), R.color.status_income)
+                BudgetProgressState.WARNING -> ContextCompat.getColor(requireContext(), R.color.status_warning)
+                BudgetProgressState.DANGER -> ContextCompat.getColor(requireContext(), R.color.status_expense)
+            }
+        )
 
-		binding.pbBudgetUsage.progress = state.usagePercent.coerceAtMost(100)
-		binding.pbBudgetUsage.progressTintList = ColorStateList.valueOf(
-			when (state.progressState) {
-				BudgetProgressState.SAFE -> ContextCompat.getColor(requireContext(), R.color.status_income)
-				BudgetProgressState.WARNING -> ContextCompat.getColor(requireContext(), R.color.status_warning)
-				BudgetProgressState.DANGER -> ContextCompat.getColor(requireContext(), R.color.status_expense)
-			}
-		)
+        // Hiển thị tin nhắn cảnh báo
+        if (state.alertMessage.isNullOrBlank()) {
+            binding.tvBudgetAlert.visibility = View.GONE
+        } else {
+            binding.tvBudgetAlert.visibility = View.VISIBLE
+            binding.tvBudgetAlert.text = state.alertMessage
+        }
 
-		if (state.alertMessage.isNullOrBlank()) {
-			binding.tvBudgetAlert.visibility = View.GONE
-		} else {
-			binding.tvBudgetAlert.visibility = View.VISIBLE
-			binding.tvBudgetAlert.text = state.alertMessage
-		}
+        // Hiển thị so sánh với tháng trước
+        if (state.comparisonMessage.isNullOrBlank()) {
+            binding.tvComparison.visibility = View.GONE
+        } else {
+            binding.tvComparison.visibility = View.VISIBLE
+            binding.tvComparison.text = state.comparisonMessage
+        }
 
-		if (state.comparisonMessage.isNullOrBlank()) {
-			binding.tvComparison.visibility = View.GONE
-		} else {
-			binding.tvComparison.visibility = View.VISIBLE
-			binding.tvComparison.text = state.comparisonMessage
-		}
+        // Trạng thái trống (nếu chưa có category nào đặt hạn mức)
+        binding.tvEmptyState.visibility = if (state.isEmpty) View.VISIBLE else View.GONE
+        binding.groupContent.visibility = if (state.isEmpty) View.GONE else View.VISIBLE
 
-		binding.tvEmptyState.visibility = if (state.isEmpty) View.VISIBLE else View.GONE
-		binding.groupContent.visibility = if (state.isEmpty) View.GONE else View.VISIBLE
+        categoryAdapter.submitList(state.categoryProgress)
+    }
 
-		categoryAdapter.submitList(state.categoryProgress)
-	}
+    private fun formatCurrency(value: Long): String {
+        val formatter = NumberFormat.getCurrencyInstance(Locale("vi", "VN"))
+        return formatter.format(value).replace("₫", "").trim() + " ₫"
+    }
 
-	private fun showBudgetInputDialog(
-		title: String,
-		defaultAmount: Long,
-		onConfirm: (Long) -> Unit
-	) {
-		val context = requireContext()
-		val dialogView = layoutInflater.inflate(R.layout.dialog_budget_input, null)
-		val dialogTitle = dialogView.findViewById<TextView>(R.id.tvDialogTitle)
-		val currentBudgetValue = dialogView.findViewById<TextView>(R.id.tvCurrentBudgetValue)
-		val inputLayout = dialogView.findViewById<TextInputLayout>(R.id.tilBudgetAmount)
-		val input = dialogView.findViewById<TextInputEditText>(R.id.etBudgetAmount)
-
-		dialogTitle.text = title
-		currentBudgetValue.text = formatCurrency(defaultAmount)
-		if (defaultAmount > 0L) {
-			input.setText(defaultAmount.toString())
-		}
-
-		val dialog = MaterialAlertDialogBuilder(context)
-			.setView(dialogView)
-			.setPositiveButton("Lưu", null)
-			.setNegativeButton("Hủy", null)
-			.create()
-
-		dialog.setOnShowListener {
-			dialog.getButton(androidx.appcompat.app.AlertDialog.BUTTON_POSITIVE).setOnClickListener {
-				val value = input.text?.toString()?.trim()?.toLongOrNull() ?: 0L
-				if (value <= 0L) {
-					inputLayout.error = "Vui lòng nhập số tiền lớn hơn 0"
-					return@setOnClickListener
-				}
-
-				inputLayout.error = null
-				onConfirm(value)
-				dialog.dismiss()
-			}
-		}
-
-		dialog.show()
-	}
-
-	private fun formatCurrency(value: Long): String {
-		val formatter = NumberFormat.getCurrencyInstance(Locale("vi", "VN"))
-		return formatter.format(value).replace("₫", "").trim() + " ₫"
-	}
-
-	override fun onDestroyView() {
-		super.onDestroyView()
-		_binding = null
-	}
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
 }

@@ -1,9 +1,6 @@
 package com.finflow.moneytracker.ui.budget
 
-import com.finflow.moneytracker.data.local.entity.Budget
-import com.finflow.moneytracker.data.local.entity.BudgetAllocation
 import com.finflow.moneytracker.data.local.entity.BudgetCycleType
-import com.finflow.moneytracker.data.local.entity.BudgetHistory
 import com.finflow.moneytracker.data.local.entity.Category
 import com.finflow.moneytracker.data.local.entity.Transaction
 import com.finflow.moneytracker.data.local.entity.Wallet

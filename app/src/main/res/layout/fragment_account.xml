@@ -45,7 +45,7 @@
                 android:orientation="vertical"
                 android:paddingVertical="32dp">
 
-                <!-- Avatar: Đã đổi sang nền Trắng và Cắt Tròn hoàn toàn -->
+                <!-- Avatar -->
                 <com.google.android.material.imageview.ShapeableImageView
                     android:id="@+id/iv_avatar_main"
                     android:layout_width="100dp"
@@ -66,14 +66,27 @@
                     android:gravity="center"
                     android:orientation="vertical"
                     android:visibility="visible">
+
+                    <!-- UID Label: Moved to Top -->
+                    <TextView
+                        android:id="@+id/tv_user_uid"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="UID: ..."
+                        android:textSize="10sp"
+                        android:textColor="?android:attr/textColorSecondary"
+                        android:alpha="0.6" />
+
                     <TextView
                         android:id="@+id/tv_display_name"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
                         android:text="Phuocmai794"
                         android:textColor="?android:attr/textColorPrimary"
                         android:textSize="20sp"
                         android:textStyle="bold" />
+
                     <TextView
                         android:id="@+id/tv_display_email"
                         android:layout_width="wrap_content"
@@ -113,7 +126,7 @@
                     android:textSize="12sp"
                     android:textStyle="bold" />
 
-                <!-- Item: Ví của tôi -->
+                <!-- Ví của tôi -->
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:id="@+id/item_wallets_action"
                     android:layout_width="match_parent"
@@ -151,7 +164,7 @@
                         app:tint="#BDBDBD" />
                 </androidx.constraintlayout.widget.ConstraintLayout>
 
-                <!-- Item: Giao diện -->
+                <!-- Giao diện -->
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:id="@+id/item_theme_action"
                     android:layout_width="match_parent"
@@ -201,7 +214,7 @@
                         app:tint="#BDBDBD" />
                 </androidx.constraintlayout.widget.ConstraintLayout>
 
-                <!-- Item: Đăng xuất -->
+                <!-- Đăng xuất -->
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:id="@+id/item_logout_action"
                     android:layout_width="match_parent"
