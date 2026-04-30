@@ -7,21 +7,20 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface WalletDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(wallet: Wallet)
+    suspend fun insert(wallet: Wallet): Long
 
     @Update
     suspend fun update(wallet: Wallet)
 
-    // Thay vì xóa thật, ta đánh dấu isDeleted = true (thực hiện ở Repository)
     @Delete
     suspend fun delete(wallet: Wallet)
 
-    @Query("SELECT * FROM wallets WHERE isDeleted = 0")
+    @Query("SELECT * FROM wallets WHERE is_deleted = 0")
     fun getAll(): Flow<List<Wallet>>
 
-    @Query("SELECT * FROM wallets WHERE id = :id AND isDeleted = 0")
-    fun getById(id: String): Flow<Wallet?>
+    @Query("SELECT * FROM wallets WHERE id = :id AND is_deleted = 0")
+    fun getById(id: Long): Flow<Wallet?>
 
-    @Query("UPDATE wallets SET balance = balance + :amount, updatedAt = :timestamp WHERE id = :walletId")
-    suspend fun addBalance(walletId: String, amount: Long, timestamp: Long = System.currentTimeMillis())
+    @Query("UPDATE wallets SET balance = balance + :amount, updated_at = :timestamp WHERE id = :walletId")
+    suspend fun addBalance(walletId: Long, amount: Long, timestamp: Long = System.currentTimeMillis())
 }

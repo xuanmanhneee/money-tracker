@@ -68,6 +68,7 @@ dependencies {
     implementation(libs.firebase.analytics)
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.auth)
+    implementation("com.google.android.gms:play-services-auth:21.0.0") // THÊM THƯ VIỆN GOOGLE SIGN IN
 
     // WorkManager để đồng bộ ngầm
     implementation("androidx.work:work-runtime-ktx:2.9.0")

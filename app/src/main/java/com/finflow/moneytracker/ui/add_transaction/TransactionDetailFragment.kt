@@ -264,7 +264,13 @@ class TransactionDetailFragment(private val transaction: Transaction) : BottomSh
             )
 
             transactionRepository.updateTransaction(updatedTransaction)
-            Toast.makeText(requireContext(), "Cập nhật giao dịch thành công", Toast.LENGTH_SHORT).show()
+            
+            val message = if (calendar.timeInMillis > System.currentTimeMillis()) {
+                "Bro đến từ tương lai à :v"
+            } else {
+                "Cập nhật giao dịch thành công"
+            }
+            Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
             dismiss()
         }
     }

@@ -5,15 +5,27 @@ import android.os.Bundle
 import android.widget.Button
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 import com.finflow.moneytracker.R
+import com.finflow.moneytracker.data.sync.FirestoreSyncWorker
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInClient
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.common.api.ApiException
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.GoogleAuthProvider
 
 class WelcomeActivity : AppCompatActivity() {
 
     private lateinit var auth: FirebaseAuth
+    private lateinit var googleSignInClient: GoogleSignInClient
+    private lateinit var signInLauncher: ActivityResultLauncher<Intent>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -22,11 +34,15 @@ class WelcomeActivity : AppCompatActivity() {
 
         auth = FirebaseAuth.getInstance()
 
-        // Kiểm tra nếu đã đăng nhập rồi thì vào luôn MainActivity
-        if (auth.currentUser != null) {
+        // Kiểm tra nếu đã đăng nhập rồi (không phải ẩn danh) thì vào luôn MainActivity
+        val currentUser = auth.currentUser
+        if (currentUser != null && !currentUser.isAnonymous) {
+            triggerInitialSync()
             startMainActivity()
             return
         }
+
+        setupGoogleSignIn()
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
@@ -38,8 +54,7 @@ class WelcomeActivity : AppCompatActivity() {
         val btnGuest = findViewById<Button>(R.id.btn_guest)
 
         btnLogin.setOnClickListener {
-            // Sau này sẽ mở màn hình đăng nhập chi tiết (Google/Email)
-            Toast.makeText(this, "Tính năng đăng nhập đang được cập nhật", Toast.LENGTH_SHORT).show()
+            signInWithGoogle()
         }
 
         btnGuest.setOnClickListener {
@@ -53,6 +68,53 @@ class WelcomeActivity : AppCompatActivity() {
                     }
                 }
         }
+    }
+
+    private fun setupGoogleSignIn() {
+        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestIdToken(getString(R.string.default_web_client_id))
+            .requestEmail()
+            .build()
+
+        googleSignInClient = GoogleSignIn.getClient(this, gso)
+
+        signInLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == RESULT_OK) {
+                val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+                try {
+                    val account = task.getResult(ApiException::class.java)!!
+                    firebaseAuthWithGoogle(account.idToken!!)
+                } catch (e: ApiException) {
+                    Toast.makeText(this, "Lỗi đăng nhập Google: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
+    private fun signInWithGoogle() {
+        // Logout để luôn hiện bảng chọn tài khoản
+        googleSignInClient.signOut().addOnCompleteListener {
+            signInLauncher.launch(googleSignInClient.signInIntent)
+        }
+    }
+
+    private fun firebaseAuthWithGoogle(idToken: String) {
+        val credential = GoogleAuthProvider.getCredential(idToken, null)
+        auth.signInWithCredential(credential)
+            .addOnCompleteListener(this) { task ->
+                if (task.isSuccessful) {
+                    Toast.makeText(this, "Đăng nhập thành công!", Toast.LENGTH_SHORT).show()
+                    triggerInitialSync()
+                    startMainActivity()
+                } else {
+                    Toast.makeText(this, "Lỗi xác thực: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
+                }
+            }
+    }
+
+    private fun triggerInitialSync() {
+        val syncRequest = OneTimeWorkRequestBuilder<FirestoreSyncWorker>().build()
+        WorkManager.getInstance(this).enqueue(syncRequest)
     }
 
     private fun startMainActivity() {

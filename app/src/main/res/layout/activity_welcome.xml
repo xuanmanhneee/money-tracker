@@ -44,12 +44,14 @@
 
     <Button
         android:id="@+id/btn_login"
+        style="@style/Widget.MaterialComponents.Button.Icon"
         android:layout_width="match_parent"
         android:layout_height="56dp"
         android:layout_marginBottom="16dp"
-        android:text="Đăng nhập"
+        android:text="Đăng nhập với Google"
         android:textAllCaps="false"
         android:textSize="16sp"
+        app:iconGravity="textStart"
         app:layout_constraintBottom_toTopOf="@id/btn_guest" />
 
     <Button
