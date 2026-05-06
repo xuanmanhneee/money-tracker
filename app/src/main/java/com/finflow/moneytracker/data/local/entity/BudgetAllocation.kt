@@ -34,7 +34,7 @@ data class BudgetAllocation(
     @ColumnInfo(name = "budget_id")
     val budgetId: String,
     @ColumnInfo(name = "category_id")
-    val categoryId: String,
+    val categoryId: Long,
     @ColumnInfo(name = "allocated_amount")
     val allocatedAmount: Long,
     @ColumnInfo(name = "updated_at")

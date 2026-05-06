@@ -12,7 +12,7 @@
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="56dp"
-        android:layout_marginBottom="12dp">
+        android:layout_marginBottom="16dp">
         <ImageView
             android:id="@+id/ivBackCategory"
             android:layout_width="24dp"
@@ -37,8 +37,6 @@
         android:id="@+id/gridCategories"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/surface_card"
-        android:padding="8dp"
         android:columnCount="3"
         android:rowCount="3"
         android:useDefaultMargins="true">

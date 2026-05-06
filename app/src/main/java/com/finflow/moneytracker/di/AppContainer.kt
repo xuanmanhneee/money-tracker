@@ -2,21 +2,33 @@ package com.finflow.moneytracker.di
 
 import android.content.Context
 import com.finflow.moneytracker.data.local.AppDatabase
+import com.finflow.moneytracker.data.local.dao.CategoryDao
+import com.finflow.moneytracker.data.local.dao.TransactionDao
+import com.finflow.moneytracker.data.local.dao.WalletDao
+import com.finflow.moneytracker.data.remote.FirestoreRemoteDataSource
+import com.finflow.moneytracker.data.remote.RemoteDataSource
 import com.finflow.moneytracker.data.repository.CategoryRepository
 import com.finflow.moneytracker.data.repository.BudgetRepository
-import com.finflow.moneytracker.data.repository.OfflineCategoryRepository
+import com.finflow.moneytracker.data.repository.DefaultCategoryRepository
+import com.finflow.moneytracker.data.repository.DefaultTransactionRepository
+import com.finflow.moneytracker.data.repository.DefaultWalletRepository
 import com.finflow.moneytracker.data.repository.OfflineBudgetRepository
-import com.finflow.moneytracker.data.repository.OfflineTransactionRepository
-import com.finflow.moneytracker.data.repository.OfflineWalletRepository
 import com.finflow.moneytracker.data.repository.TransactionRepository
 import com.finflow.moneytracker.data.repository.WalletRepository
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 
 interface AppContainer {
-    // Phơi bày Repository ra cho ViewModel sử dụng
     val walletRepository: WalletRepository
     val categoryRepository: CategoryRepository
     val transactionRepository: TransactionRepository
     val budgetRepository: BudgetRepository
+    val remoteDataSource: RemoteDataSource
+    
+    // Expose DAOs for low-level sync operations
+    val walletDao: WalletDao
+    val categoryDao: CategoryDao
+    val transactionDao: TransactionDao
 }
 
 class DefaultAppContainer(private val context: Context) : AppContainer {
@@ -25,17 +37,31 @@ class DefaultAppContainer(private val context: Context) : AppContainer {
         AppDatabase.getDatabase(context)
     }
 
-    // Khởi tạo Repository và tự động truyền DAO vào bên trong nó
+    override val walletDao: WalletDao by lazy { database.walletDao() }
+    override val categoryDao: CategoryDao by lazy { database.categoryDao() }
+    override val transactionDao: TransactionDao by lazy { database.transactionDao() }
+
+    override val remoteDataSource: RemoteDataSource by lazy {
+        FirestoreRemoteDataSource(
+            FirebaseFirestore.getInstance(),
+            FirebaseAuth.getInstance()
+        )
+    }
+
     override val walletRepository: WalletRepository by lazy {
-        OfflineWalletRepository(database.walletDao())
+        DefaultWalletRepository(walletDao, remoteDataSource)
     }
 
     override val categoryRepository: CategoryRepository by lazy {
-        OfflineCategoryRepository(database.categoryDao())
+        DefaultCategoryRepository(categoryDao, remoteDataSource)
     }
 
     override val transactionRepository: TransactionRepository by lazy {
-        OfflineTransactionRepository(database.transactionDao())
+        DefaultTransactionRepository(
+            transactionDao,
+            walletDao,
+            remoteDataSource
+        )
     }
 
     override val budgetRepository: BudgetRepository by lazy {

@@ -3,44 +3,35 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
-    <color name="placeholder_overview">#1D2C3B</color>
-    <color name="placeholder_transactions">#1D3B36</color>
-    <color name="placeholder_add">#3B321D</color>
-    <color name="placeholder_budget">#3B281D</color>
-    <color name="placeholder_account">#2F243B</color>
-    <color name="grey">#17202A</color>
-    <color name="dark_grey">#111A22</color>
-    <color name="green">#3BCB8A</color>
-    <color name="red">#FF6B6B</color>
-    <color name="blue">#5AA8FF</color>
-    <color name="divider_inactive">#283847</color>
+    <color name="placeholder_overview">#BBDEFB</color>
+    <color name="placeholder_transactions">#C8E6C9</color>
+    <color name="placeholder_add">#FFF9C4</color>
+    <color name="placeholder_budget">#FFE0B2</color>
+    <color name="placeholder_account">#E1BEE7</color>
+    <color name="grey">#1E1E1E</color>
+    <color name="dark_grey">#121212</color>
+    <color name="green">#4CAF50</color>
+    <color name="red">#F44336</color>
+    <color name="blue">#2196F3</color>
+    <color name="divider_inactive">#000000</color>
 
     <!-- Background -->
-    <color name="bg_white">#0A121A</color>
-    <color name="divider">#223244</color>
-    <color name="surface_card">#13202C</color>
-    <color name="surface_card_alt">#172734</color>
-    <color name="surface_input">#0F1A24</color>
-    <color name="outline_soft">#2A3B4D</color>
-    <color name="ripple_soft">#2F455A</color>
+    <color name="bg_white">#0A0A0A</color>
+    <color name="divider">#303030</color>
 
     <!-- Text Colors -->
     <color name="text_primary">#FFFFFF</color>
-    <color name="text_secondary">#A3B4C6</color>
-    <color name="text_hint">#7D90A4</color>
+    <color name="text_secondary">#B0B0B0</color>
+    <color name="text_hint">#757575</color>
     <color name="text_button">#FFFFFF</color>
 
-    <!-- Accent Colors -->
-    <color name="bg_button">#1FA88F</color>
-    <color name="accent_info">#5ED7E4</color>
-    <color name="accent_soft_orange">#F0A84B</color>
-    <color name="nav_item_active">#7BE6D3</color>
-    <color name="nav_item_inactive">#7F98AD</color>
+    <!-- Button Colors -->
+    <color name="bg_button">#6200EE</color>
 
     <!-- Status Colors -->
-    <color name="status_income">#3BCB8A</color>
-    <color name="status_warning">#F4BF4D</color>
-    <color name="status_expense">#FF6B6B</color>
+    <color name="status_income">#4CAF50</color>
+    <color name="status_warning">#FBC02D</color>
+    <color name="status_expense">#F44336</color>
 
     <!-- Transaction payment method chip -->
     <color name="chip_payment_cash_bg">#FFE9F6EC</color>

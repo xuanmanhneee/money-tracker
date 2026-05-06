@@ -1,6 +1,7 @@
 package com.finflow.moneytracker.ui.transactions
 
 import android.content.res.ColorStateList
+import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -53,11 +54,11 @@ class TransactionAdapter : ListAdapter<TransactionUiItem, TransactionAdapter.Tra
             if (transaction.amount < 0) {
                 // Chi tiêu: Màu đỏ, định dạng "- 50.000đ"
                 tvAmount.text = "- $formattedAmount"
-                tvAmount.setTextColor(ContextCompat.getColor(itemView.context, R.color.status_expense))
+                tvAmount.setTextColor(Color.parseColor("#F44336"))
             } else {
                 // Thu nhập: Màu xanh, định dạng "+ 15.000.000đ"
                 tvAmount.text = "+ $formattedAmount"
-                tvAmount.setTextColor(ContextCompat.getColor(itemView.context, R.color.status_income))
+                tvAmount.setTextColor(Color.parseColor("#4CAF50"))
             }
         }
 

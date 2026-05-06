@@ -13,14 +13,21 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MoneyTracker">
 
+        <!-- WelcomeActivity là màn hình khởi đầu mới -->
         <activity
-            android:name="com.finflow.moneytracker.ui.host.MainActivity"
+            android:name="com.finflow.moneytracker.ui.host.WelcomeActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- MainActivity không còn là Launcher nữa -->
+        <activity
+            android:name="com.finflow.moneytracker.ui.host.MainActivity"
+            android:exported="false" />
+
     </application>
 
 </manifest>

@@ -3,12 +3,12 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/bg_white">
+    android:background="#FFFFFF">
 
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/bg_white"
+        android:background="#FFFFFF"
         app:elevation="0dp">
 
         <LinearLayout
@@ -24,7 +24,7 @@
                 android:text="Lịch sử giao dịch"
                 android:textSize="20sp"
                 android:textStyle="bold"
-                android:textColor="@color/text_primary"
+                android:textColor="#212121"
                 android:layout_marginBottom="16dp"/>
 
             <LinearLayout
@@ -40,13 +40,10 @@
                     android:layout_weight="1"
                     android:background="@drawable/bg_search_bar"
                     android:hint="Tìm kiếm ghi chú..."
-                    android:textColor="@color/text_primary"
-                    android:textColorHint="@color/text_hint"
                     android:paddingStart="16dp"
                     android:textSize="14sp"
                     android:drawableStart="@drawable/ic_search"
-                    android:drawablePadding="8dp"
-                    android:drawableTint="@color/text_hint" />
+                    android:drawablePadding="8dp" />
 
                 <ImageButton
                     android:id="@+id/btnFilter"
@@ -55,7 +52,7 @@
                     android:layout_marginStart="8dp"
                     android:background="@drawable/bg_filter_button"
                     android:src="@drawable/ic_filter"
-                    app:tint="@color/text_secondary" />
+                    app:tint="#424242" />
             </LinearLayout>
 
             <com.google.android.material.chip.ChipGroup
@@ -71,8 +68,6 @@
                     style="@style/Widget.MaterialComponents.Chip.Choice"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    app:chipBackgroundColor="@color/chip_filter_bg"
-                    android:textColor="@color/chip_filter_text"
                     android:text="Ngày" />
 
                 <com.google.android.material.chip.Chip
@@ -80,8 +75,6 @@
                     style="@style/Widget.MaterialComponents.Chip.Choice"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    app:chipBackgroundColor="@color/chip_filter_bg"
-                    android:textColor="@color/chip_filter_text"
                     android:text="Tuần" />
 
                 <com.google.android.material.chip.Chip
@@ -90,8 +83,6 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:checked="true"
-                    app:chipBackgroundColor="@color/chip_filter_bg"
-                    android:textColor="@color/chip_filter_text"
                     android:text="Tháng" />
 
                 <com.google.android.material.chip.Chip
@@ -99,8 +90,6 @@
                     style="@style/Widget.MaterialComponents.Chip.Choice"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    app:chipBackgroundColor="@color/chip_filter_bg"
-                    android:textColor="@color/chip_filter_text"
                     android:text="Năm" />
             </com.google.android.material.chip.ChipGroup>
         </LinearLayout>
@@ -110,7 +99,6 @@
         android:id="@+id/rvTransactions"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/bg_white"
         android:clipToPadding="false"
         android:paddingTop="8dp"
         app:layout_behavior="@string/appbar_scrolling_view_behavior" />

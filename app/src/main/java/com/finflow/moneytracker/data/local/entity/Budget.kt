@@ -11,7 +11,7 @@ data class Budget(
     val id: String = UUID.randomUUID().toString(),
     val userId: String = "",
     @ColumnInfo(name = "wallet_id")
-    val walletId: String? = null,
+    val walletId: Long? = null,
     val name: String,
     @ColumnInfo(name = "budget_type")
     val budgetType: Int = BudgetType.PERSONAL,

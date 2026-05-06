@@ -12,7 +12,20 @@
           "package_name": "com.finflow.moneytracker"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "384962330503-hple6lstdtqdogd7qud6b7hfckpjph6l.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.finflow.moneytracker",
+            "certificate_hash": "0ce4273055b25313d0dc223eb701062971e9e23d"
+          }
+        },
+        {
+          "client_id": "384962330503-pk8ev7nl440u9pqk3ssp02c9o27flnef.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBkAGN0d1piJBLAFP36cmGjC0lbsOtV5eU"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "384962330503-pk8ev7nl440u9pqk3ssp02c9o27flnef.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

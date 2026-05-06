@@ -17,8 +17,7 @@
         <!-- TOP BAR -->
         <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:layout_marginBottom="6dp">
+            android:layout_height="56dp">
             <ImageView
                 android:id="@+id/ivBackDetail"
                 android:layout_width="24dp"
@@ -52,10 +51,8 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:gravity="center_horizontal"
-            android:layout_marginTop="14dp"
-            android:layout_marginBottom="16dp"
-            android:background="@color/surface_card"
-            android:padding="14dp">
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="24dp">
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -91,9 +88,7 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:paddingHorizontal="12dp"
-            android:paddingVertical="12dp"
-            android:background="@drawable/bg_clickable_row"
+            android:paddingVertical="8dp"
             android:clickable="true"
             android:focusable="true">
             <ImageView
@@ -116,12 +111,9 @@
             android:id="@+id/btnDetailSelectPaymentMethod"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:paddingHorizontal="12dp"
-            android:paddingVertical="12dp"
-            android:background="@drawable/bg_clickable_row"
+            android:paddingVertical="8dp"
             android:clickable="true"
             android:focusable="true">
             <ImageView
@@ -144,12 +136,9 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:paddingHorizontal="12dp"
-            android:paddingVertical="12dp"
-            android:background="@drawable/bg_surface_input">
+            android:paddingVertical="8dp">
             <ImageView
                 android:layout_width="24dp"
                 android:layout_height="24dp"
@@ -171,18 +160,16 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
             android:orientation="horizontal"
             android:gravity="center"
-            android:padding="10dp"
-            android:background="@color/surface_card_alt">
+            android:padding="8dp">
 
             <ImageButton
                 android:id="@+id/btnDetailPrev"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:src="@android:drawable/ic_media_previous"
-                android:background="@drawable/bg_filter_button"
+                android:background="@android:color/transparent"
                 app:tint="@color/bg_button"/>
 
             <TextView
@@ -200,7 +187,7 @@
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:src="@android:drawable/ic_media_next"
-                android:background="@drawable/bg_filter_button"
+                android:background="@android:color/transparent"
                 app:tint="@color/bg_button"/>
 
         </LinearLayout>
@@ -211,7 +198,7 @@
             android:layout_width="match_parent"
             android:layout_height="56dp"
             android:layout_marginTop="32dp"
-            android:text="LƯU"
+            android:text="LƯ U"
             android:textSize="16sp"
             android:textStyle="bold"
             android:textColor="@color/text_button"
