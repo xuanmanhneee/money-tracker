@@ -7,17 +7,26 @@ import androidx.room.RoomDatabase
 import com.finflow.moneytracker.data.local.entity.Wallet
 import com.finflow.moneytracker.data.local.entity.Category
 import com.finflow.moneytracker.data.local.entity.Transaction
+import com.finflow.moneytracker.data.local.entity.Budget
+import com.finflow.moneytracker.data.local.entity.BudgetAllocation
+import com.finflow.moneytracker.data.local.entity.BudgetHistory
 import com.finflow.moneytracker.data.local.dao.WalletDao
 import com.finflow.moneytracker.data.local.dao.CategoryDao
 import com.finflow.moneytracker.data.local.dao.TransactionDao
+import com.finflow.moneytracker.data.local.dao.BudgetDao
+import com.finflow.moneytracker.data.local.dao.BudgetAllocationDao
+import com.finflow.moneytracker.data.local.dao.BudgetHistoryDao
 
 @Database(
     entities = [
         Wallet::class,
         Category::class,
-        Transaction::class
+        Transaction::class,
+        Budget::class,
+        BudgetAllocation::class,
+        BudgetHistory::class
     ],
-    version = 7, // Tăng version vì xóa bảng
+    version = 8, // Thay doi schema de them budget
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -25,6 +34,9 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun walletDao(): WalletDao
     abstract fun categoryDao(): CategoryDao
     abstract fun transactionDao(): TransactionDao
+    abstract fun budgetDao(): BudgetDao
+    abstract fun budgetAllocationDao(): BudgetAllocationDao
+    abstract fun budgetHistoryDao(): BudgetHistoryDao
 
     companion object {
         @Volatile

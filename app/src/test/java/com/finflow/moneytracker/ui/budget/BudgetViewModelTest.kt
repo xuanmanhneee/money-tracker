@@ -37,9 +37,15 @@ class BudgetViewModelTest {
 
     @Test
     fun uiState_spent_onlyCountsTransactionsFromBudgetWallet() = runTest {
-        val walletA = Wallet(id = "wallet-a", name = "Wallet A")
-        val walletB = Wallet(id = "wallet-b", name = "Wallet B")
-        val expenseCategory = Category(id = "cat-food", name = "Food", type = 0, icon = "ic_food")
+        val walletA = Wallet(id = 1L, name = "Wallet A")
+        val walletB = Wallet(id = 2L, name = "Wallet B")
+        val expenseCategory = Category(
+            id = 10L,
+            name = "Food",
+            type = 0,
+            icon = "ic_food",
+            monthlyBudgetLimit = 100_000L
+        )
 
         val (start, end) = monthRange(System.currentTimeMillis())
         val budget = Budget(
@@ -54,14 +60,14 @@ class BudgetViewModelTest {
 
         val transactions = listOf(
             Transaction(
-                id = "tx-a",
+                id = 1L,
                 walletId = walletA.id,
                 categoryId = expenseCategory.id,
                 amount = -1_000L,
                 date = start + 1_000L
             ),
             Transaction(
-                id = "tx-b",
+                id = 2L,
                 walletId = walletB.id,
                 categoryId = expenseCategory.id,
                 amount = -9_000L,
@@ -98,9 +104,21 @@ class BudgetViewModelTest {
 
     @Test
     fun editCurrentBudget_rebalancesExistingAllocationsByRatio() = runTest {
-        val wallet = Wallet(id = "wallet-main", name = "Main")
-        val catFood = Category(id = "cat-food", name = "Food", type = 0, icon = "ic_food")
-        val catTransport = Category(id = "cat-transport", name = "Transport", type = 0, icon = "ic_transport")
+        val wallet = Wallet(id = 1L, name = "Main")
+        val catFood = Category(
+            id = 10L,
+            name = "Food",
+            type = 0,
+            icon = "ic_food",
+            monthlyBudgetLimit = 100_000L
+        )
+        val catTransport = Category(
+            id = 11L,
+            name = "Transport",
+            type = 0,
+            icon = "ic_transport",
+            monthlyBudgetLimit = 200_000L
+        )
 
         val (start, end) = monthRange(System.currentTimeMillis())
         val budget = Budget(
@@ -158,8 +176,14 @@ class BudgetViewModelTest {
 
     @Test
     fun uiState_comparisonMessage_isBuiltFromPreviousMonthTransactions() = runTest {
-        val wallet = Wallet(id = "wallet-main", name = "Main")
-        val expenseCategory = Category(id = "cat-food", name = "Food", type = 0, icon = "ic_food")
+        val wallet = Wallet(id = 1L, name = "Main")
+        val expenseCategory = Category(
+            id = 10L,
+            name = "Food",
+            type = 0,
+            icon = "ic_food",
+            monthlyBudgetLimit = 100_000L
+        )
 
         val now = System.currentTimeMillis()
         val (currentStart, currentEnd) = monthRange(now)
@@ -183,14 +207,14 @@ class BudgetViewModelTest {
 
         val transactions = listOf(
             Transaction(
-                id = "tx-current",
+                id = 1L,
                 walletId = wallet.id,
                 categoryId = expenseCategory.id,
                 amount = -4_000L,
                 date = currentStart + 5_000L
             ),
             Transaction(
-                id = "tx-previous",
+                id = 2L,
                 walletId = wallet.id,
                 categoryId = expenseCategory.id,
                 amount = -2_500L,
@@ -335,7 +359,7 @@ private class FakeWalletRepository(
 
     override fun getWalletsStream(): Flow<List<Wallet>> = walletsState
 
-    override fun getWalletStream(id: String): Flow<Wallet?> {
+    override fun getWalletStream(id: Long): Flow<Wallet?> {
         return walletsState.map { wallets -> wallets.firstOrNull { it.id == id } }
     }
 
@@ -383,7 +407,7 @@ private class FakeTransactionRepository(
 
     override fun getAllTransactionsStream(): Flow<List<Transaction>> = transactionsState
 
-    override fun getTransactionStream(id: String): Flow<Transaction?> {
+    override fun getTransactionStream(id: Long): Flow<Transaction?> {
         return transactionsState.map { list -> list.firstOrNull { it.id == id } }
     }
 
@@ -393,7 +417,7 @@ private class FakeTransactionRepository(
         }
     }
 
-    override fun getTransactionsByWalletStream(walletId: String): Flow<List<Transaction>> {
+    override fun getTransactionsByWalletStream(walletId: Long): Flow<List<Transaction>> {
         return transactionsState.map { list -> list.filter { it.walletId == walletId } }
     }
 
@@ -413,5 +437,26 @@ private class FakeTransactionRepository(
 
     override suspend fun deleteTransaction(transaction: Transaction) {
         transactionsState.value = transactionsState.value.filterNot { it.id == transaction.id }
+    }
+
+    override suspend fun transferMoney(
+        fromWalletId: Long,
+        toWalletId: Long,
+        amount: Long,
+        note: String?,
+        date: Long,
+        transferCategoryId: Long
+    ) {
+        val nextId = (transactionsState.value.maxOfOrNull { it.id } ?: 0L) + 1L
+        val transferTx = Transaction(
+            id = nextId,
+            walletId = fromWalletId,
+            toWalletId = toWalletId,
+            categoryId = transferCategoryId,
+            amount = amount,
+            date = date,
+            note = note
+        )
+        transactionsState.value = transactionsState.value + transferTx
     }
 }
