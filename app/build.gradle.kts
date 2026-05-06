@@ -3,6 +3,8 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.kapt)
     alias(libs.plugins.google.services)
+    id("kotlin-kapt")
+    alias(libs.plugins.google.services)
 }
 
 android {
@@ -48,6 +50,7 @@ dependencies {
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
     testImplementation(libs.junit)
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1")
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
@@ -62,9 +65,13 @@ dependencies {
     implementation("androidx.room:room-ktx:2.7.0")
     kapt("androidx.room:room-compiler:2.7.0")
 
-    // Firebase (Mở lại toàn bộ)
+    // Firebase
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics)
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.auth)
+    implementation("com.google.android.gms:play-services-auth:21.0.0") // THÊM THƯ VIỆN GOOGLE SIGN IN
+
+    // WorkManager để đồng bộ ngầm
+    implementation("androidx.work:work-runtime-ktx:2.9.0")
 }

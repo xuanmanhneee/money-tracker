@@ -5,13 +5,24 @@ import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.finflow.moneytracker.MoneyTrackerApplication
+import com.finflow.moneytracker.ui.budget.BudgetViewModel
 import com.finflow.moneytracker.ui.transactions.TransactionsViewModel
 
 object AppViewModelProvider {
     val Factory = viewModelFactory {
         initializer {
             TransactionsViewModel(
-                moneyTrackerApplication().container.transactionRepository
+                transactionRepository = moneyTrackerApplication().container.transactionRepository,
+                categoryRepository = moneyTrackerApplication().container.categoryRepository,
+                walletRepository = moneyTrackerApplication().container.walletRepository
+            )
+        }
+
+        initializer {
+            BudgetViewModel(
+                walletRepository = moneyTrackerApplication().container.walletRepository,
+                categoryRepository = moneyTrackerApplication().container.categoryRepository,
+                transactionRepository = moneyTrackerApplication().container.transactionRepository
             )
         }
     }

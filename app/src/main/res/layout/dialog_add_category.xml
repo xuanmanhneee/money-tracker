@@ -1,54 +1,92 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="16dp"
-    android:background="@color/bg_white">
+    android:padding="18dp">
 
     <TextView
+        android:id="@+id/tvDialogTitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Thêm nhóm mới"
-        android:textSize="18sp"
-        android:textStyle="bold"
         android:textColor="@color/text_primary"
-        android:layout_marginBottom="16dp" />
+        android:textSize="20sp"
+        android:textStyle="bold" />
 
-    <EditText
-        android:id="@+id/etCategoryName"
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/tilCategoryName"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Tên nhóm"
-        android:textColorHint="@color/text_hint"
-        android:textColor="@color/text_primary"
-        android:padding="12dp"
-        android:layout_marginBottom="12dp" />
+        android:layout_marginTop="14dp"
+        android:hint="Tên nhóm">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etCategoryName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:imeOptions="actionNext"
+            android:inputType="textCapSentences" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/tilMonthlyLimit"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:hint="Hạn mức tháng (không bắt buộc)"
+        app:suffixText="₫">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etMonthlyLimit"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:imeOptions="actionDone"
+            android:inputType="number" />
+    </com.google.android.material.textfield.TextInputLayout>
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Chọn biểu tượng"
+        android:textColor="@color/text_primary"
+        android:textSize="14sp"
+        android:textStyle="bold" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvIcons"
+        android:layout_width="match_parent"
+        android:layout_height="120dp"
+        android:layout_marginTop="8dp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
         android:text="Loại giao dịch"
         android:textColor="@color/text_primary"
         android:textSize="14sp"
-        android:layout_marginBottom="8dp" />
+        android:textStyle="bold" />
 
-    <LinearLayout
+    <RadioGroup
+        android:id="@+id/rgCategoryType"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginBottom="16dp">
+        android:layout_marginTop="6dp"
+        android:orientation="horizontal">
 
         <RadioButton
             android:id="@+id/rbExpense"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:checked="true"
             android:text="Chi tiêu"
-            android:textColor="@color/text_primary"
-            android:checked="true" />
+            android:textColor="@color/text_primary" />
 
         <RadioButton
             android:id="@+id/rbIncome"
@@ -57,33 +95,32 @@
             android:layout_weight="1"
             android:text="Thu nhập"
             android:textColor="@color/text_primary" />
-
-    </LinearLayout>
+    </RadioGroup>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="18dp"
         android:orientation="horizontal">
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnCancel"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
             android:layout_width="0dp"
-            android:layout_height="48dp"
+            android:layout_height="46dp"
+            android:layout_marginEnd="8dp"
             android:layout_weight="1"
             android:text="Hủy"
-            android:textColor="@color/text_primary"
-            android:background="@android:color/transparent"
-            android:layout_marginEnd="8dp" />
+            android:textAllCaps="false" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnAdd"
+            style="@style/Widget.MaterialComponents.Button"
             android:layout_width="0dp"
-            android:layout_height="48dp"
+            android:layout_height="46dp"
             android:layout_weight="1"
-            android:text="Thêm"
-            android:textColor="@color/text_button"
-            android:background="@color/bg_button" />
-
+            android:text="Thêm nhóm"
+            android:textAllCaps="false" />
     </LinearLayout>
 
 </LinearLayout>

@@ -11,7 +11,9 @@ import androidx.lifecycle.lifecycleScope
 import com.finflow.moneytracker.MoneyTrackerApplication
 import com.finflow.moneytracker.R
 import com.finflow.moneytracker.data.local.entity.Category
+import com.finflow.moneytracker.ui.common.CategoryIconResolver
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 
 class CategorySelectionFragment : BottomSheetDialogFragment() {
@@ -23,13 +25,11 @@ class CategorySelectionFragment : BottomSheetDialogFragment() {
         (requireActivity().application as MoneyTrackerApplication).container.categoryRepository
     }
 
-    // Callback interface để gửi dữ liệu về AddTransactionBottomSheet
     interface OnCategorySelectedListener {
         fun onCategorySelected(category: Category)
     }
 
     private var listener: OnCategorySelectedListener? = null
-
     private var categoriesList: List<Category> = emptyList()
 
     override fun onCreateView(
@@ -42,20 +42,11 @@ class CategorySelectionFragment : BottomSheetDialogFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         gridCategories = view.findViewById(R.id.gridCategories)
         ivBackCategory = view.findViewById(R.id.ivBackCategory)
-
-        // Tổ chức lại GridLayout
         gridCategories.columnCount = 3
-
-        // Render categories
         observeCategories()
-
-        // Nút quay lại
-        ivBackCategory.setOnClickListener {
-            dismiss()
-        }
+        ivBackCategory.setOnClickListener { dismiss() }
     }
 
     private fun observeCategories() {
@@ -69,17 +60,20 @@ class CategorySelectionFragment : BottomSheetDialogFragment() {
 
     private fun renderCategories() {
         gridCategories.removeAllViews()
-
         val inflater = LayoutInflater.from(requireContext())
 
-        // Thêm các nhóm vào grid
         categoriesList.forEach { category ->
             val categoryView = inflater.inflate(R.layout.item_category, gridCategories, false)
-
             val iconView = categoryView.findViewById<ImageView>(R.id.ivCategoryIcon)
             val nameView = categoryView.findViewById<TextView>(R.id.tvCategoryName)
 
-            iconView.setImageResource(resolveCategoryIcon(category.icon))
+            iconView.setImageResource(
+                CategoryIconResolver.resolveCategoryIconRes(
+                    iconName = category.icon,
+                    categoryName = category.name,
+                    categoryType = category.type
+                )
+            )
             nameView.text = category.name
 
             categoryView.setOnClickListener {
@@ -87,39 +81,31 @@ class CategorySelectionFragment : BottomSheetDialogFragment() {
                 dismiss()
             }
 
-            // Tạo LayoutParams cho GridLayout
             val params = GridLayout.LayoutParams()
             params.width = (resources.displayMetrics.widthPixels / 3) - 24
             params.height = GridLayout.LayoutParams.WRAP_CONTENT
             params.setMargins(8, 8, 8, 8)
             categoryView.layoutParams = params
-
             gridCategories.addView(categoryView)
         }
-
-        // Thêm nút "Thêm nhóm mới"
         addNewCategoryButton(inflater)
     }
 
     private fun addNewCategoryButton(inflater: LayoutInflater) {
         val addCategoryView = inflater.inflate(R.layout.item_category, gridCategories, false)
-
         val iconView = addCategoryView.findViewById<ImageView>(R.id.ivCategoryIcon)
         val nameView = addCategoryView.findViewById<TextView>(R.id.tvCategoryName)
 
         iconView.setImageResource(R.drawable.ic_add)
         nameView.text = "Thêm mới"
 
-        addCategoryView.setOnClickListener {
-            showAddCategoryDialog()
-        }
+        addCategoryView.setOnClickListener { showAddCategoryDialog() }
 
         val params = GridLayout.LayoutParams()
         params.width = (resources.displayMetrics.widthPixels / 3) - 24
         params.height = GridLayout.LayoutParams.WRAP_CONTENT
         params.setMargins(8, 8, 8, 8)
         addCategoryView.layoutParams = params
-
         gridCategories.addView(addCategoryView)
     }
 
@@ -128,18 +114,13 @@ class CategorySelectionFragment : BottomSheetDialogFragment() {
         dialog.setOnCategoryAddedListener(object : AddCategoryDialogFragment.OnCategoryAddedListener {
             override fun onCategoryAdded(category: Category) {
                 viewLifecycleOwner.lifecycleScope.launch {
-                    categoryRepository.insertCategory(category)
+                    // Gán userId khi tạo category mới
+                    val currentUserId = FirebaseAuth.getInstance().currentUser?.uid ?: "local_user"
+                    categoryRepository.insertCategory(category.copy(userId = currentUserId))
                 }
             }
         })
         dialog.show(parentFragmentManager, "AddCategory")
-    }
-
-    private fun resolveCategoryIcon(iconName: String): Int {
-        return when (iconName) {
-            "ic_food", "ic_salary", "ic_transport", "ic_category" -> R.drawable.ic_category
-            else -> R.drawable.ic_category
-        }
     }
 
     fun setOnCategorySelectedListener(listener: OnCategorySelectedListener) {

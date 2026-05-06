@@ -30,6 +30,15 @@
 
     <!-- Status Colors -->
     <color name="status_income">#4CAF50</color>
+    <color name="status_warning">#FBC02D</color>
     <color name="status_expense">#F44336</color>
+
+    <!-- Transaction payment method chip -->
+    <color name="chip_payment_cash_bg">#FFE9F6EC</color>
+    <color name="chip_payment_cash_text">#FF1E7A34</color>
+    <color name="chip_payment_bank_bg">#FFE7F0FF</color>
+    <color name="chip_payment_bank_text">#FF1E4FBF</color>
+    <color name="chip_payment_other_bg">#FFF1F3F5</color>
+    <color name="chip_payment_other_text">#FF5F6368</color>
 
 </resources>
