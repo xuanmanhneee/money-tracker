@@ -26,7 +26,7 @@ import com.finflow.moneytracker.data.local.dao.BudgetHistoryDao
         BudgetAllocation::class,
         BudgetHistory::class
     ],
-    version = 8, // Thay doi schema de them budget
+    version = 9, // Thay doi schema de them budget
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
