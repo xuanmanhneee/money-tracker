@@ -20,7 +20,6 @@ object AppViewModelProvider {
 
         initializer {
             BudgetViewModel(
-                budgetRepository = moneyTrackerApplication().container.budgetRepository,
                 walletRepository = moneyTrackerApplication().container.walletRepository,
                 categoryRepository = moneyTrackerApplication().container.categoryRepository,
                 transactionRepository = moneyTrackerApplication().container.transactionRepository
