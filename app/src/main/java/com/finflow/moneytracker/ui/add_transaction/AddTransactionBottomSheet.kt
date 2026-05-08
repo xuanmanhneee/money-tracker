@@ -208,8 +208,8 @@ class AddTransactionBottomSheet : BottomSheetDialogFragment(),
         }
 
         val baseAmount = amount.roundToLong()
-        val isExpense = selectedCategory?.type == TYPE_EXPENSE
-        val signedAmount = if (isExpense) -abs(baseAmount) else abs(baseAmount)
+
+        val normalizedAmount = abs(baseAmount)
         
         val currentUserId = FirebaseAuth.getInstance().currentUser?.uid ?: DEFAULT_LOCAL_USER
         val appContext = requireContext().applicationContext
@@ -227,7 +227,7 @@ class AddTransactionBottomSheet : BottomSheetDialogFragment(),
                 userId = currentUserId,
                 walletId = selectedWallet.id,
                 categoryId = selectedCategory!!.id,
-                amount = signedAmount,
+                amount = normalizedAmount,
                 date = calendar.timeInMillis,
                 note = etNotes.text.toString().trim(),
                 receiptImagePath = null,

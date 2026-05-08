@@ -12,6 +12,7 @@ import com.finflow.moneytracker.MoneyTrackerApplication
 import com.finflow.moneytracker.R
 import com.finflow.moneytracker.data.local.entity.Category
 import com.finflow.moneytracker.ui.common.CategoryIconResolver
+import com.finflow.moneytracker.ui.transactions.CategorySnapshot
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
@@ -70,7 +71,6 @@ class CategorySelectionFragment : BottomSheetDialogFragment() {
             iconView.setImageResource(
                 CategoryIconResolver.resolveCategoryIconRes(
                     iconName = category.icon,
-                    categoryName = category.name,
                     categoryType = category.type
                 )
             )

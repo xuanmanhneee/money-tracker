@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.finflow.moneytracker.R
 import com.finflow.moneytracker.data.local.entity.Category
+import com.finflow.moneytracker.data.local.model.CategoryType
 import com.finflow.moneytracker.ui.common.CategoryIconResolver
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textfield.TextInputLayout
@@ -76,7 +77,11 @@ class AddCategoryDialogFragment : DialogFragment() {
             val monthlyLimit = if (limitText.isNotEmpty()) limitText.toLongOrNull() else null
 
             inputLayout.error = null
-            val type = if (rbIncome.isChecked) TYPE_INCOME else TYPE_EXPENSE
+            val type = if (rbIncome.isChecked) {
+                CategoryType.INCOME
+            } else {
+                CategoryType.EXPENSE
+            }
             
             val newCategory = Category(
                 name = categoryName,
@@ -111,8 +116,7 @@ class AddCategoryDialogFragment : DialogFragment() {
 
         override fun onBindViewHolder(holder: ViewHolder, position: Int) {
             val iconKey = icons[position]
-            holder.iconView.setImageResource(CategoryIconResolver.resolveCategoryIconRes(iconKey, ""))
-            
+            CategoryIconResolver.resolveCategoryIconRes(iconKey)
             holder.container.alpha = if (selectedPos == position) 1.0f else 0.4f
             
             holder.container.setOnClickListener {
