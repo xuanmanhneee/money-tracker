@@ -36,7 +36,7 @@ class WelcomeActivity : AppCompatActivity() {
 
         // Kiểm tra nếu đã đăng nhập rồi (không phải ẩn danh) thì vào luôn MainActivity
         val currentUser = auth.currentUser
-        if (currentUser != null && !currentUser.isAnonymous) {
+        if (currentUser != null) {
             triggerInitialSync()
             startMainActivity()
             return

@@ -2,12 +2,10 @@ package com.finflow.moneytracker.ui.budget
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.finflow.moneytracker.data.local.entity.Category
-import com.finflow.moneytracker.data.local.entity.Transaction
+import com.finflow.moneytracker.data.local.model.CategoryType
 import com.finflow.moneytracker.data.repository.CategoryRepository
 import com.finflow.moneytracker.data.repository.TransactionRepository
 import com.finflow.moneytracker.data.repository.WalletRepository
-import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -53,11 +51,6 @@ class BudgetViewModel(
     categoryRepository: CategoryRepository,
     private val transactionRepository: TransactionRepository
 ) : ViewModel() {
-
-    companion object {
-        private const val TYPE_EXPENSE = 0
-    }
-
     private val currentDateFlow = MutableStateFlow(System.currentTimeMillis())
 
     val uiState: StateFlow<BudgetUiState> = combine(
@@ -68,16 +61,18 @@ class BudgetViewModel(
     ) { date, _, categories, transactions ->
         
         val (periodStart, periodEnd) = getMonthRange(date)
-        
-        val expenseCategories = categories.filter { it.type == TYPE_EXPENSE && !it.isDeleted }
+
+        val expenseCategories = categories.filter {
+            it.type == CategoryType.EXPENSE && !it.isDeleted
+        }
+
         val expenseCategoryIds = expenseCategories.map { it.id }.toSet()
 
-        // Lọc giao dịch chi tiêu trong tháng hiện tại
         val currentMonthTransactions = transactions.filter { tx ->
             !tx.isDeleted &&
-            tx.date in periodStart..periodEnd &&
-            tx.categoryId in expenseCategoryIds &&
-            tx.amount < 0
+                    tx.date in periodStart..periodEnd &&
+                    tx.categoryId in expenseCategoryIds &&
+                    tx.toWalletId == null
         }
 
         val totalPlanned = expenseCategories.sumOf { it.monthlyBudgetLimit ?: 0L }
@@ -91,7 +86,7 @@ class BudgetViewModel(
         }
 
         val totalSpent = currentMonthTransactions.sumOf { abs(it.amount) }
-        val totalRemaining = totalPlanned - totalSpent
+        val totalRemaining = (totalPlanned - totalSpent).coerceAtLeast(0L)
         val totalUsagePercent = percentage(totalSpent, totalPlanned)
 
         val spentByCategory = currentMonthTransactions
@@ -116,21 +111,6 @@ class BudgetViewModel(
                 )
             }.sortedByDescending { it.spent }
 
-        // Logic so sánh với tháng trước
-        val (prevStart, prevEnd) = getPreviousMonthRange(periodStart)
-        val prevSpent = transactions.filter { tx ->
-            !tx.isDeleted &&
-            tx.date in prevStart..prevEnd &&
-            tx.categoryId in expenseCategoryIds &&
-            tx.amount < 0
-        }.sumOf { abs(it.amount) }
-
-        val comparisonMessage = if (prevSpent > 0L) {
-            val delta = totalSpent - prevSpent
-            if (delta == 0L) "Chi tiêu bằng kỳ trước"
-            else "Chi tiêu ${if (delta > 0) "tăng" else "giảm"} ${formatCurrency(abs(delta))} so với kỳ trước"
-        } else null
-
         BudgetUiState(
             isLoading = false,
             isEmpty = false,
@@ -141,7 +121,6 @@ class BudgetViewModel(
             usagePercent = totalUsagePercent,
             progressState = mapUsageToState(totalUsagePercent),
             alertMessage = buildAlertMessage(totalUsagePercent),
-            comparisonMessage = comparisonMessage,
             categoryProgress = categoryProgress
         )
     }.stateIn(
@@ -152,14 +131,6 @@ class BudgetViewModel(
 
     fun refreshCurrentPeriod() {
         currentDateFlow.value = System.currentTimeMillis()
-    }
-
-    private fun getPreviousMonthRange(currentPeriodStart: Long): Pair<Long, Long> {
-        val calendar = Calendar.getInstance().apply {
-            timeInMillis = currentPeriodStart
-            add(Calendar.MONTH, -1)
-        }
-        return getMonthRange(calendar.timeInMillis)
     }
 
     private fun getMonthRange(timestamp: Long): Pair<Long, Long> {
@@ -179,7 +150,7 @@ class BudgetViewModel(
 
     private fun percentage(value: Long, total: Long): Int {
         if (total <= 0L) return 0
-        return ((value * 100f) / total).toInt().coerceAtLeast(0)
+        return ((value * 100f) / total).toInt().coerceIn(0, 100)
     }
 
     private fun mapUsageToState(usagePercent: Int): BudgetProgressState {
@@ -200,10 +171,5 @@ class BudgetViewModel(
 
     private fun formatPeriodLabel(dateMillis: Long): String {
         return SimpleDateFormat("MM/yyyy", Locale("vi", "VN")).format(dateMillis)
-    }
-
-    private fun formatCurrency(value: Long): String {
-        val formatter = NumberFormat.getCurrencyInstance(Locale("vi", "VN"))
-        return formatter.format(value).replace("₫", "").trim() + " ₫"
     }
 }

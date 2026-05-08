@@ -19,6 +19,7 @@ import com.finflow.moneytracker.R
 import com.finflow.moneytracker.data.local.entity.Category
 import com.finflow.moneytracker.data.local.entity.Transaction
 import com.finflow.moneytracker.data.local.entity.Wallet
+import com.finflow.moneytracker.data.local.model.CategoryType
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
@@ -246,7 +247,7 @@ class TransactionDetailFragment(private val transaction: Transaction) : BottomSh
         }
 
         val baseAmount = amount.roundToLong()
-        val isExpense = selectedCategory?.type == TYPE_EXPENSE
+        val isExpense = selectedCategory?.type == CategoryType.EXPENSE
         val signedAmount = if (isExpense) -abs(baseAmount) else abs(baseAmount)
 
         lifecycleScope.launch {

@@ -21,6 +21,9 @@ interface WalletDao {
     @Query("SELECT * FROM wallets WHERE id = :id AND is_deleted = 0")
     fun getById(id: Long): Flow<Wallet?>
 
+    @Query("SELECT * FROM wallets WHERE id = :id AND is_deleted = 0")
+    suspend fun getByIdOnce(id: Long): Wallet?
+
     @Query("UPDATE wallets SET balance = balance + :amount, updated_at = :timestamp WHERE id = :walletId")
     suspend fun addBalance(walletId: Long, amount: Long, timestamp: Long = System.currentTimeMillis())
 }

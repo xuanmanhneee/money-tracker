@@ -1,8 +1,10 @@
 package com.finflow.moneytracker.data.repository
 
+import com.finflow.moneytracker.data.local.dao.CategoryDao
 import com.finflow.moneytracker.data.local.dao.TransactionDao
 import com.finflow.moneytracker.data.local.dao.WalletDao
 import com.finflow.moneytracker.data.local.entity.Transaction
+import com.finflow.moneytracker.data.local.model.CategoryType
 import com.finflow.moneytracker.data.remote.RemoteDataSource
 import kotlinx.coroutines.flow.Flow
 
@@ -16,21 +18,12 @@ interface TransactionRepository {
     suspend fun insertTransaction(transaction: Transaction)
     suspend fun updateTransaction(transaction: Transaction)
     suspend fun deleteTransaction(transaction: Transaction)
-    
-    // HÀM MỚI: Xử lý chuyển khoản giữa 2 ví
-    suspend fun transferMoney(
-        fromWalletId: Long,
-        toWalletId: Long,
-        amount: Long,
-        note: String?,
-        date: Long,
-        transferCategoryId: Long
-    )
 }
 
 class DefaultTransactionRepository(
     private val transactionDao: TransactionDao,
     private val walletDao: WalletDao,
+    private val categoryDao: CategoryDao,
     private val remoteDataSource: RemoteDataSource
 ) : TransactionRepository {
     override fun getAllTransactionsStream(): Flow<List<Transaction>> = transactionDao.getAll()
@@ -41,67 +34,81 @@ class DefaultTransactionRepository(
     override fun getTransactionsByWalletStream(walletId: Long): Flow<List<Transaction>> =
         transactionDao.getByWallet(walletId)
 
-    override fun getTotalAmountStream(type: Int, startDate: Long, endDate: Long): Flow<Long?> =
+    override fun getTotalAmountStream(
+        type: Int,
+        startDate: Long,
+        endDate: Long
+    ): Flow<Long?> =
         transactionDao.getTotalAmountByTypeAndDateRange(type, startDate, endDate)
 
     override suspend fun insertTransaction(transaction: Transaction) {
-        // 1. Lưu vào Local và lấy ID thực tế
         val generatedId = transactionDao.insert(transaction)
         val insertedTransaction = transaction.copy(id = generatedId)
-        
-        // 2. Cập nhật số dư ví (Giao dịch thường)
+
         if (insertedTransaction.toWalletId == null) {
-            walletDao.addBalance(insertedTransaction.walletId, insertedTransaction.amount)
+
+            val category = insertedTransaction.categoryId
+                ?.let { categoryDao.getById(it) }
+
+            val delta = when (category?.type) {
+                CategoryType.INCOME -> insertedTransaction.amount
+                CategoryType.EXPENSE -> -insertedTransaction.amount
+                null -> 0L
+            }
+
+            walletDao.addBalance(insertedTransaction.walletId, delta)
+        } else {
+            walletDao.addBalance(insertedTransaction.walletId, -insertedTransaction.amount)
+            walletDao.addBalance(insertedTransaction.toWalletId, insertedTransaction.amount)
         }
-        
-        // 3. Sync lên Firebase với ID đúng
-        remoteDataSource.syncTransaction(insertedTransaction)
+
+        trySyncTransaction(insertedTransaction)
     }
-    
+
     override suspend fun updateTransaction(transaction: Transaction) {
         val updatedTransaction = transaction.copy(updatedAt = System.currentTimeMillis())
         transactionDao.update(updatedTransaction)
-        remoteDataSource.syncTransaction(updatedTransaction)
+        trySyncTransaction(updatedTransaction)
     }
 
     override suspend fun deleteTransaction(transaction: Transaction) {
-        val deletedTransaction = transaction.copy(isDeleted = true, updatedAt = System.currentTimeMillis())
+        val deletedTransaction = transaction.copy(
+            isDeleted = true,
+            updatedAt = System.currentTimeMillis()
+        )
         transactionDao.update(deletedTransaction)
-        
-        // Hoàn lại tiền khi xóa
-        walletDao.addBalance(transaction.walletId, -transaction.amount)
-        
-        remoteDataSource.syncTransaction(deletedTransaction)
+
+        if (transaction.toWalletId == null) {
+
+            val category = transaction.categoryId
+                ?.let { categoryDao.getById(it) }
+
+            val delta = when (category?.type) {
+                CategoryType.INCOME -> -transaction.amount
+                CategoryType.EXPENSE -> transaction.amount
+                null -> 0L
+            }
+
+            walletDao.addBalance(transaction.walletId, delta)
+
+        } else {
+            walletDao.addBalance(transaction.walletId, transaction.amount)
+            walletDao.addBalance(transaction.toWalletId, -transaction.amount)
+        }
+
+        trySyncTransaction(deletedTransaction)
     }
 
-    override suspend fun transferMoney(
-        fromWalletId: Long,
-        toWalletId: Long,
-        amount: Long,
-        note: String?,
-        date: Long,
-        transferCategoryId: Long
-    ) {
-        val transferTx = Transaction(
-            walletId = fromWalletId,
-            toWalletId = toWalletId,
-            categoryId = transferCategoryId,
-            amount = amount,
-            date = date,
-            note = note
-        )
-        
-        // 1. Lưu giao dịch và lấy ID
-        val generatedId = transactionDao.insert(transferTx)
-        val insertedTx = transferTx.copy(id = generatedId)
-        
-        // 2. Trừ tiền ví gửi
-        walletDao.addBalance(fromWalletId, -amount)
-        
-        // 3. Cộng tiền ví nhận
-        walletDao.addBalance(toWalletId, amount)
-        
-        // 4. Sync
-        remoteDataSource.syncTransaction(insertedTx)
+    private suspend fun trySyncTransaction(transaction: Transaction) {
+        try {
+            remoteDataSource.syncTransaction(transaction)
+            walletDao.getByIdOnce(transaction.walletId)?.let { remoteDataSource.syncWallet(it) }
+            transaction.toWalletId?.let { toId ->
+                walletDao.getByIdOnce(toId)?.let { remoteDataSource.syncWallet(it) }
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("SyncError", "Sync failed: ${e.message}")
+        }
     }
+
 }

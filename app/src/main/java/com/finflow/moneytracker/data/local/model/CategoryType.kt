@@ -1,4 +1,6 @@
 package com.finflow.moneytracker.data.local.model
 
-class CategoryType {
+enum class CategoryType {
+    EXPENSE,
+    INCOME
 }
