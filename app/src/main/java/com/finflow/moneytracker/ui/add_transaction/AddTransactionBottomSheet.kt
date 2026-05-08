@@ -25,6 +25,7 @@ import com.finflow.moneytracker.data.local.entity.Category
 import com.finflow.moneytracker.data.local.entity.Transaction
 import com.finflow.moneytracker.data.sync.FirestoreSyncWorker
 import com.finflow.moneytracker.data.local.entity.Wallet
+import com.finflow.moneytracker.data.repository.WalletRepository
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
@@ -211,9 +212,16 @@ class AddTransactionBottomSheet : BottomSheetDialogFragment(),
         val signedAmount = if (isExpense) -abs(baseAmount) else abs(baseAmount)
         
         val currentUserId = FirebaseAuth.getInstance().currentUser?.uid ?: DEFAULT_LOCAL_USER
+        val appContext = requireContext().applicationContext
+        val txRepository = transactionRepository
+        val walletRepo = walletRepository
 
         lifecycleScope.launch {
-            val selectedWallet = getOrCreateWalletForPaymentMethod(selectedPaymentMethod, currentUserId)
+            val selectedWallet = getOrCreateWalletForPaymentMethod(
+                walletRepo,
+                selectedPaymentMethod,
+                currentUserId
+            )
 
             val transaction = Transaction(
                 userId = currentUserId,
@@ -226,19 +234,27 @@ class AddTransactionBottomSheet : BottomSheetDialogFragment(),
                 toWalletId = null
             )
 
-            transactionRepository.insertTransaction(transaction)
+            txRepository.insertTransaction(transaction)
 
             val message = if (calendar.timeInMillis > System.currentTimeMillis()) {
                 "Bro đến từ tương lai à :v"
             } else {
                 "Lưu giao dịch thành công"
             }
-            Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
-            dismiss()
+            if (isAdded) {
+                Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
+                dismiss()
+            } else {
+                Toast.makeText(appContext, message, Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
-    private suspend fun getOrCreateWalletForPaymentMethod(paymentMethod: PaymentMethod, currentUserId: String): Wallet {
+    private suspend fun getOrCreateWalletForPaymentMethod(
+        walletRepository: WalletRepository,
+        paymentMethod: PaymentMethod,
+        currentUserId: String
+    ): Wallet {
         val wallets = walletRepository.getWalletsStream().first()
         val targetWalletName = when (paymentMethod) {
             PaymentMethod.CASH -> CASH_WALLET_NAME

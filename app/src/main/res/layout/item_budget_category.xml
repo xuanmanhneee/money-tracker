@@ -4,6 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="8dp"
+    android:foreground="?attr/selectableItemBackground"
     app:cardBackgroundColor="@color/dark_grey"
     app:cardCornerRadius="14dp"
     app:cardElevation="0dp"
@@ -59,6 +60,14 @@
             android:text="Còn lại: 0 ₫"
             android:textColor="@color/status_income"
             android:textSize="11sp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:text="Chạm để chỉnh ngân sách nhóm"
+            android:textColor="@color/text_secondary"
+            android:textSize="10sp" />
 
         <LinearLayout
             android:layout_width="match_parent"

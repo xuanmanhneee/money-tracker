@@ -15,6 +15,12 @@ import java.util.Locale
 class BudgetCategoryAdapter :
     ListAdapter<BudgetCategoryProgressUi, BudgetCategoryAdapter.BudgetCategoryViewHolder>(DiffCallback) {
 
+    private var onCategoryClick: ((BudgetCategoryProgressUi) -> Unit)? = null
+
+    fun setOnCategoryClickListener(listener: (BudgetCategoryProgressUi) -> Unit) {
+        onCategoryClick = listener
+    }
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BudgetCategoryViewHolder {
         val binding = ItemBudgetCategoryBinding.inflate(
             LayoutInflater.from(parent.context),
@@ -25,19 +31,25 @@ class BudgetCategoryAdapter :
     }
 
     override fun onBindViewHolder(holder: BudgetCategoryViewHolder, position: Int) {
-        holder.bind(getItem(position))
+        holder.bind(getItem(position), onCategoryClick)
     }
 
     class BudgetCategoryViewHolder(
         private val binding: ItemBudgetCategoryBinding
     ) : RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(item: BudgetCategoryProgressUi) {
+        fun bind(
+            item: BudgetCategoryProgressUi,
+            onCategoryClick: ((BudgetCategoryProgressUi) -> Unit)?
+        ) {
             binding.tvCategoryName.text = item.categoryName
             binding.tvCategoryAllocated.text = "Ngân sách: ${formatCurrency(item.allocated)}"
             binding.tvCategorySpent.text = "Đã chi: ${formatCurrency(item.spent)}"
             binding.tvCategoryRemaining.text = "Còn lại: ${formatCurrency(item.remaining)}"
             binding.tvCategoryUsagePercent.text = "${item.usagePercent}%"
+            binding.root.setOnClickListener {
+                onCategoryClick?.invoke(item)
+            }
 
             binding.pbCategoryUsage.progress = item.usagePercent.coerceAtMost(100)
             binding.pbCategoryUsage.progressTintList = ColorStateList.valueOf(

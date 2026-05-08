@@ -8,9 +8,11 @@ import com.finflow.moneytracker.data.local.dao.WalletDao
 import com.finflow.moneytracker.data.remote.FirestoreRemoteDataSource
 import com.finflow.moneytracker.data.remote.RemoteDataSource
 import com.finflow.moneytracker.data.repository.CategoryRepository
+import com.finflow.moneytracker.data.repository.BudgetRepository
 import com.finflow.moneytracker.data.repository.DefaultCategoryRepository
 import com.finflow.moneytracker.data.repository.DefaultTransactionRepository
 import com.finflow.moneytracker.data.repository.DefaultWalletRepository
+import com.finflow.moneytracker.data.repository.OfflineBudgetRepository
 import com.finflow.moneytracker.data.repository.TransactionRepository
 import com.finflow.moneytracker.data.repository.WalletRepository
 import com.google.firebase.auth.FirebaseAuth
@@ -20,6 +22,7 @@ interface AppContainer {
     val walletRepository: WalletRepository
     val categoryRepository: CategoryRepository
     val transactionRepository: TransactionRepository
+    val budgetRepository: BudgetRepository
     val remoteDataSource: RemoteDataSource
     
     // Expose DAOs for low-level sync operations
@@ -58,6 +61,14 @@ class DefaultAppContainer(private val context: Context) : AppContainer {
             transactionDao,
             walletDao,
             remoteDataSource
+        )
+    }
+
+    override val budgetRepository: BudgetRepository by lazy {
+        OfflineBudgetRepository(
+            database.budgetDao(),
+            database.budgetAllocationDao(),
+            database.budgetHistoryDao()
         )
     }
 }
