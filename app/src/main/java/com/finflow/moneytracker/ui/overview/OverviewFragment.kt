@@ -3,26 +3,20 @@ package com.finflow.moneytracker.ui.overview
 import android.animation.ArgbEvaluator
 import android.animation.ValueAnimator
 import android.content.Intent
-import android.app.Dialog
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.view.View
-import android.view.ViewGroup
-import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.RadioGroup
 import android.widget.TextView
-import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.finflow.moneytracker.MoneyTrackerApplication
 import com.finflow.moneytracker.R
 import com.github.mikephil.charting.charts.LineChart
@@ -46,7 +40,6 @@ class OverviewFragment : Fragment(R.layout.fragment_overview) {
     private lateinit var tvTotalExpense: TextView
     private lateinit var tvTotalIncome: TextView
     private lateinit var lineChart: LineChart
-    private lateinit var tvSeeAllWallets: TextView
 
     private lateinit var viewModel: OverviewViewModel
 
@@ -87,7 +80,6 @@ class OverviewFragment : Fragment(R.layout.fragment_overview) {
         tvTotalExpense = view.findViewById(R.id.tvTotalExpense)
         tvTotalIncome = view.findViewById(R.id.tvTotalIncome)
         lineChart = view.findViewById(R.id.lineChart)
-        tvSeeAllWallets = view.findViewById(R.id.tvSeeAllWallets)
     }
 
     private fun observeViewModel() {
@@ -114,16 +106,10 @@ class OverviewFragment : Fragment(R.layout.fragment_overview) {
     }
 
     private fun setupListeners() {
-        ivTotalBalance.setOnClickListener { toggleBalanceVisibility() }
-        setupReportTabListeners()
-
-        tvSeeAllWallets.setOnClickListener {
-            val intent = Intent(requireContext(), WalletActivity::class.java)
-            startActivity(intent)
-        }
-    }
         ivTotalBalanceVisibility.setOnClickListener { toggleBalanceVisibility() }
-        btnViewDetails.setOnClickListener { showWalletManagementPopup() }
+        btnViewDetails.setOnClickListener {
+            startActivity(Intent(requireContext(), WalletActivity::class.java))
+        }
 
         radioGroupPeriod.setOnCheckedChangeListener { _, checkedId ->
             val period = when (checkedId) {
@@ -154,40 +140,6 @@ class OverviewFragment : Fragment(R.layout.fragment_overview) {
             updateBalanceUI()
             tvTotalBalance.animate().alpha(1f).setDuration(150).start()
         }.start()
-    }
-
-    private fun showWalletManagementPopup() {
-        val dialog = Dialog(requireContext())
-        try {
-            val dialogView = layoutInflater.inflate(R.layout.dialog_wallet_management, null)
-            dialog.setContentView(dialogView)
-
-            val rvWallets = dialogView.findViewById<RecyclerView>(R.id.rvWallets)
-            val btnClose = dialogView.findViewById<ImageButton>(R.id.btnClose)
-
-            // Thiết lập Adapter cho danh sách ví
-            val adapter = WalletAdapter()
-            rvWallets.layoutManager = LinearLayoutManager(context)
-            rvWallets.adapter = adapter
-
-            // Lắng nghe danh sách ví từ ViewModel
-            viewLifecycleOwner.lifecycleScope.launch {
-                viewModel.allWallets.collect { wallets ->
-                    adapter.submitList(wallets)
-                }
-            }
-
-            btnClose?.setOnClickListener { dialog.dismiss() }
-
-            dialog.window?.apply {
-                setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
-                val width = (resources.displayMetrics.widthPixels * 0.9).toInt()
-                setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT)
-            }
-            dialog.show()
-        } catch (e: Exception) {
-            Toast.makeText(context, "Lỗi hiển thị danh sách ví", Toast.LENGTH_SHORT).show()
-        }
     }
 
     private fun selectExpenseTab() {

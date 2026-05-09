@@ -12,6 +12,7 @@ import com.finflow.moneytracker.data.repository.BudgetRepository
 import com.finflow.moneytracker.data.repository.CategoryRepository
 import com.finflow.moneytracker.data.repository.TransactionRepository
 import com.finflow.moneytracker.data.repository.WalletRepository
+import com.finflow.moneytracker.data.local.model.CategoryType
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -83,7 +84,7 @@ class BudgetViewModel(
     )
 
     companion object {
-        private const val TYPE_EXPENSE = 0
+        private val TYPE_EXPENSE = CategoryType.EXPENSE
         private const val DEFAULT_LOCAL_USER = "local_user"
         private const val DEFAULT_WALLET_NAME = "Ví mặc định"
         private const val DAY_MILLIS = 24L * 60L * 60L * 1000L

@@ -1,4 +1,4 @@
-package com.finflow.moneytracker.ui.overview
+package com.finflow.moneytracker.adapter
 
 import android.view.LayoutInflater
 import android.view.View

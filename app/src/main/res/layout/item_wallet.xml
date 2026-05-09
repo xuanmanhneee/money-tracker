@@ -3,10 +3,6 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="12dp"
-    app:cardBackgroundColor="?attr/colorSurface"
-    app:cardCornerRadius="12dp"
-    app:cardElevation="1dp"
     android:layout_marginHorizontal="4dp"
     android:layout_marginVertical="6dp"
     app:cardBackgroundColor="?attr/colorSurfaceVariant"
@@ -26,12 +22,9 @@
             android:id="@+id/ivWalletIcon"
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:background="@drawable/wallet"
             android:padding="8dp"
             android:src="@drawable/wallet"
-            app:tint="@color/green" />
-            android:contentDescription="@string/content_desc_wallet_icon"
-            android:src="@drawable/wallet" />
+            android:contentDescription="@string/content_desc_wallet_icon" />
 
         <!-- Thông tin ví -->
         <LinearLayout
@@ -46,9 +39,6 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/wallet_name_placeholder"
-                android:textColor="?android:attr/textColorPrimary"
-                android:textSize="16sp" />
-                android:text="Tiền mặt"
                 android:textColor="@color/text_primary"
                 android:textSize="16sp"
                 android:textStyle="bold" />
@@ -58,13 +48,12 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
-                android:text="0 ₫"
-                android:textColor="@color/text_secondary"
                 android:text="@string/zero_balance_placeholder"
-                android:textColor="?android:attr/textColorSecondary"
+                android:textColor="@color/text_secondary"
                 android:textSize="14sp" />
         </LinearLayout>
 
+        <!-- Nút sửa ví -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/btnEditWalletContainer"
             android:layout_width="32dp"
@@ -79,6 +68,7 @@
             android:foreground="?attr/selectableItemBackground">
 
             <ImageView
+                android:id="@+id/btnEditWallet"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:padding="6dp"
@@ -88,16 +78,11 @@
                 android:contentDescription="@string/content_desc_edit_icon" />
         </com.google.android.material.card.MaterialCardView>
 
+        <!-- Nút xóa ví -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/btnDeleteWalletContainer"
-        <!-- Nút xóa ví (Tùy chọn) -->
-        <ImageButton
-            android:id="@+id/btnDeleteWallet"
             android:layout_width="32dp"
             android:layout_height="32dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@android:drawable/ic_menu_delete"
-            app:tint="@color/red" />
             app:cardBackgroundColor="#1A000000"
             app:cardCornerRadius="8dp"
             app:cardElevation="0dp"
