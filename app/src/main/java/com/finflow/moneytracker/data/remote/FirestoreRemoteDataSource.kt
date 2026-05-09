@@ -1,9 +1,11 @@
 package com.finflow.moneytracker.data.remote
 
 import android.util.Log
+import com.finflow.moneytracker.data.local.converter.CategoryTypeConverter
 import com.finflow.moneytracker.data.local.entity.Category
 import com.finflow.moneytracker.data.local.entity.Transaction
 import com.finflow.moneytracker.data.local.entity.Wallet
+import com.finflow.moneytracker.data.local.model.CategoryType
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.NonCancellable
@@ -44,7 +46,7 @@ class FirestoreRemoteDataSource(
                 "id" to category.id,
                 "userId" to uid,
                 "name" to category.name,
-                "type" to category.type,
+                "type" to CategoryTypeConverter().fromType(category.type),
                 "icon" to category.icon,
                 "monthlyBudgetLimit" to category.monthlyBudgetLimit,
                 "isDefault" to category.isDefault,
@@ -110,7 +112,7 @@ class FirestoreRemoteDataSource(
                     id = doc.getLong("id") ?: 0L,
                     userId = doc.getString("userId") ?: uid,
                     name = doc.getString("name") ?: "",
-                    type = doc.getLong("type")?.toInt() ?: 0,
+                    type = doc.getLong("type")?.toInt()?.let { CategoryTypeConverter().toType(it) } ?: CategoryType.EXPENSE,
                     icon = doc.getString("icon") ?: "",
                     monthlyBudgetLimit = doc.getLong("monthlyBudgetLimit"),
                     isDefault = doc.getBoolean("isDefault") ?: false,
@@ -133,7 +135,7 @@ class FirestoreRemoteDataSource(
                     id = doc.getLong("id") ?: 0L,
                     userId = doc.getString("userId") ?: uid,
                     walletId = doc.getLong("walletId") ?: 0L,
-                    categoryId = doc.getLong("categoryId") ?: 0L,
+                    categoryId = doc.getLong("categoryId"),
                     amount = doc.getLong("amount") ?: 0L,
                     date = doc.getLong("date") ?: 0L,
                     note = doc.getString("note"),

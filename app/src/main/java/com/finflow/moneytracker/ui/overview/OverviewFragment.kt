@@ -3,32 +3,41 @@ package com.finflow.moneytracker.ui.overview
 import android.animation.ArgbEvaluator
 import android.animation.ValueAnimator
 import android.content.Intent
+import android.app.Dialog
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
-import android.util.TypedValue
 import android.view.View
+import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.RadioGroup
 import android.widget.TextView
+import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.finflow.moneytracker.MoneyTrackerApplication
 import com.finflow.moneytracker.R
 import com.github.mikephil.charting.charts.LineChart
-import java.text.NumberFormat
-import java.util.Locale
+import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
-import com.github.mikephil.charting.components.XAxis
+import kotlinx.coroutines.launch
+import java.text.NumberFormat
+import java.util.Locale
 
-class OverviewFragment : Fragment(R.layout.fragment_overview){
+class OverviewFragment : Fragment(R.layout.fragment_overview) {
     private lateinit var tvTotalBalance: TextView
-    private lateinit var ivTotalBalance: ImageView
-    private lateinit var btnSearch: ImageButton
-    private lateinit var btnNotification: ImageButton
+    private lateinit var ivTotalBalanceVisibility: ImageView
+    private lateinit var btnViewDetails: TextView
     private lateinit var radioGroupPeriod: RadioGroup
     private lateinit var layoutExpense: LinearLayout
     private lateinit var layoutIncome: LinearLayout
@@ -39,21 +48,37 @@ class OverviewFragment : Fragment(R.layout.fragment_overview){
     private lateinit var lineChart: LineChart
     private lateinit var tvSeeAllWallets: TextView
 
+    private lateinit var viewModel: OverviewViewModel
+
     private var isBalanceVisible = true
     private var actualBalance = 0.0
+    private var isExpenseTabSelected = true
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        val container = (requireActivity().application as MoneyTrackerApplication).container
+
+        // Khởi tạo ViewModel qua Factory
+        val factory = OverviewViewModelFactory(
+            container.walletRepository,
+            container.transactionRepository
+        )
+
+        viewModel = ViewModelProvider(this, factory)[OverviewViewModel::class.java]
+
+        // Ánh xạ View và thiết lập sự kiện
         initViews(view)
         setupListeners()
-        loadData()
+
+        // Quan sát dữ liệu (Dữ liệu từ Local sẽ tự chảy về đây qua Flow)
+        observeViewModel()
     }
 
     private fun initViews(view: View) {
         tvTotalBalance = view.findViewById(R.id.tvTotalBalance)
-        ivTotalBalance = view.findViewById(R.id.ivTotalBalance)
-        btnSearch = view.findViewById(R.id.btnSearch)
-        btnNotification = view.findViewById(R.id.btnNotification)
+        ivTotalBalanceVisibility = view.findViewById(R.id.ivTotalBalanceVisibility)
+        btnViewDetails = view.findViewById(R.id.btnViewDetails)
         radioGroupPeriod = view.findViewById(R.id.radioGroupPeriod)
         layoutExpense = view.findViewById(R.id.LayoutExpense)
         layoutIncome = view.findViewById(R.id.LayoutIncome)
@@ -65,6 +90,29 @@ class OverviewFragment : Fragment(R.layout.fragment_overview){
         tvSeeAllWallets = view.findViewById(R.id.tvSeeAllWallets)
     }
 
+    private fun observeViewModel() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                // 1. Cập nhật Tổng số dư
+                launch {
+                    viewModel.totalBalance.collect { balance: Double ->
+                        actualBalance = balance
+                        updateBalanceUI()
+                    }
+                }
+
+                // 2. Cập nhật Thu/Chi & Biểu đồ
+                launch {
+                    viewModel.overviewStats.collect { stats ->
+                        tvTotalExpense.text = formatCurrency(stats.expense.toDouble())
+                        tvTotalIncome.text = formatCurrency(stats.income.toDouble())
+                        setupChart(isExpenseTabSelected, getCurrentMaxAxis())
+                    }
+                }
+            }
+        }
+    }
+
     private fun setupListeners() {
         ivTotalBalance.setOnClickListener { toggleBalanceVisibility() }
         setupReportTabListeners()
@@ -74,62 +122,94 @@ class OverviewFragment : Fragment(R.layout.fragment_overview){
             startActivity(intent)
         }
     }
+        ivTotalBalanceVisibility.setOnClickListener { toggleBalanceVisibility() }
+        btnViewDetails.setOnClickListener { showWalletManagementPopup() }
 
-    private fun getHiddenBalance(balance: Double): String {
-        val digitCount = Math.abs(balance.toLong()).toString().length
-        return "*".repeat(digitCount) + " ₫"
+        radioGroupPeriod.setOnCheckedChangeListener { _, checkedId ->
+            val period = when (checkedId) {
+                R.id.rbThisWeek -> "WEEK"
+                R.id.rbThisYear -> "YEAR"
+                else -> "MONTH"
+            }
+            viewModel.setPeriod(period) // Update ViewModel để Repo lấy data mới
+        }
+
+        layoutExpense.setOnClickListener { selectExpenseTab() }
+        layoutIncome.setOnClickListener { selectIncomeTab() }
+    }
+
+    private fun updateBalanceUI() {
+        if (isBalanceVisible) {
+            tvTotalBalance.text = formatCurrency(actualBalance)
+            ivTotalBalanceVisibility.setImageResource(R.drawable.view)
+        } else {
+            tvTotalBalance.text = "******** ₫"
+            ivTotalBalanceVisibility.setImageResource(R.drawable.close_view)
+        }
     }
 
     private fun toggleBalanceVisibility() {
         isBalanceVisible = !isBalanceVisible
         tvTotalBalance.animate().alpha(0f).setDuration(150).withEndAction {
-            if (isBalanceVisible) {
-                tvTotalBalance.text = formatCurrency(actualBalance)
-                ivTotalBalance.setImageResource(R.drawable.view)
-            } else {
-                tvTotalBalance.text = getHiddenBalance(actualBalance)
-                ivTotalBalance.setImageResource(R.drawable.close_view)
-            }
+            updateBalanceUI()
             tvTotalBalance.animate().alpha(1f).setDuration(150).start()
         }.start()
     }
 
-    private fun loadData() {
-        actualBalance = 4775000.0
-        updateUI(actualBalance, 0.0, 472725055.0)
-    }
+    private fun showWalletManagementPopup() {
+        val dialog = Dialog(requireContext())
+        try {
+            val dialogView = layoutInflater.inflate(R.layout.dialog_wallet_management, null)
+            dialog.setContentView(dialogView)
 
-    private fun updateUI(balance: Double, expense: Double, income: Double) {
-        actualBalance = balance
-        tvTotalBalance.text = if (isBalanceVisible) formatCurrency(balance) else getHiddenBalance(balance)
-        ivTotalBalance.setImageResource(if (isBalanceVisible) R.drawable.view else R.drawable.close_view)
-        tvTotalExpense.text = formatCurrency(expense)
-        tvTotalIncome.text = formatCurrency(income)
-    }
+            val rvWallets = dialogView.findViewById<RecyclerView>(R.id.rvWallets)
+            val btnClose = dialogView.findViewById<ImageButton>(R.id.btnClose)
 
-    private fun formatCurrency(amount: Double): String {
-        val formatter = NumberFormat.getCurrencyInstance(Locale("vi", "VN"))
-        return formatter.format(amount).replace("₫", "").trim() + " ₫"
-    }
+            // Thiết lập Adapter cho danh sách ví
+            val adapter = WalletAdapter()
+            rvWallets.layoutManager = LinearLayoutManager(context)
+            rvWallets.adapter = adapter
 
-    private fun setupReportTabListeners() {
-        selectExpenseTab()
-        layoutExpense.setOnClickListener { selectExpenseTab() }
-        layoutIncome.setOnClickListener { selectIncomeTab() }
+            // Lắng nghe danh sách ví từ ViewModel
+            viewLifecycleOwner.lifecycleScope.launch {
+                viewModel.allWallets.collect { wallets ->
+                    adapter.submitList(wallets)
+                }
+            }
+
+            btnClose?.setOnClickListener { dialog.dismiss() }
+
+            dialog.window?.apply {
+                setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+                val width = (resources.displayMetrics.widthPixels * 0.9).toInt()
+                setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT)
+            }
+            dialog.show()
+        } catch (e: Exception) {
+            Toast.makeText(context, "Lỗi hiển thị danh sách ví", Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun selectExpenseTab() {
-        val inactiveColor = ContextCompat.getColor(requireContext(), R.color.divider_inactive)
+        isExpenseTabSelected = true
         animateDividerColor(viewDividerLeft, ContextCompat.getColor(requireContext(), R.color.red))
-        animateDividerColor(viewDividerRight, inactiveColor)
-        setupChart(isExpense = true)
+        animateDividerColor(viewDividerRight, ContextCompat.getColor(requireContext(), R.color.divider_inactive))
+        setupChart(true, getCurrentMaxAxis())
     }
 
     private fun selectIncomeTab() {
-        val inactiveColor = ContextCompat.getColor(requireContext(), R.color.divider_inactive)
-        animateDividerColor(viewDividerLeft, inactiveColor)
+        isExpenseTabSelected = false
+        animateDividerColor(viewDividerLeft, ContextCompat.getColor(requireContext(), R.color.divider_inactive))
         animateDividerColor(viewDividerRight, ContextCompat.getColor(requireContext(), R.color.blue))
-        setupChart(isExpense = false)
+        setupChart(false, getCurrentMaxAxis())
+    }
+
+    private fun getCurrentMaxAxis(): Float {
+        return when (radioGroupPeriod.checkedRadioButtonId) {
+            R.id.rbThisWeek -> 7f
+            R.id.rbThisYear -> 12f
+            else -> 31f
+        }
     }
 
     private fun animateDividerColor(targetView: View, colorTo: Int) {
@@ -141,18 +221,17 @@ class OverviewFragment : Fragment(R.layout.fragment_overview){
         }
     }
 
-    private fun setupChart(isExpense: Boolean) {
-        val entries = if (isExpense) {
-            listOf(Entry(1f, 0f), Entry(5f, 320000f), Entry(10f, 450000f), Entry(20f, 390000f), Entry(31f, 0f))
-        } else {
-            listOf(Entry(1f, 0f), Entry(15f, 472725055f), Entry(31f, 472725055f))
-        }
+    private fun formatCurrency(amount: Double): String {
+        val formatter = NumberFormat.getCurrencyInstance(Locale("vi", "VN"))
+        return formatter.format(amount).replace("₫", "").trim() + " ₫"
+    }
+
+    private fun setupChart(isExpense: Boolean, maxAxisValue: Float) {
+        // Ở đây bạn nên lấy dữ liệu thực tế từ ViewModel để vẽ Entry thay vì data mẫu
+        val entries = listOf(Entry(1f, 0f), Entry(maxAxisValue, 0f))
 
         val chartColor = ContextCompat.getColor(requireContext(), if (isExpense) R.color.red else R.color.blue)
-        
-        val typedValue = TypedValue()
-        requireContext().theme.resolveAttribute(android.R.attr.textColorPrimary, typedValue, true)
-        val textColor = typedValue.data
+        val textColor = ContextCompat.getColor(requireContext(), R.color.text_primary)
 
         val dataSet = LineDataSet(entries, "").apply {
             color = chartColor
@@ -182,6 +261,8 @@ class OverviewFragment : Fragment(R.layout.fragment_overview){
                 setDrawAxisLine(false)
                 axisMinimum = entries.first().x
                 axisMaximum = entries.last().x
+                axisMinimum = 1f
+                axisMaximum = maxAxisValue
             }
 
 
@@ -189,11 +270,10 @@ class OverviewFragment : Fragment(R.layout.fragment_overview){
             axisLeft.apply {
                 this.textColor = textColor
                 setDrawGridLines(true)
-                gridColor = if (textColor == Color.WHITE) Color.parseColor("#444444") else Color.parseColor("#DDDDDD")
-                gridLineWidth = 0.5f
+                gridColor = Color.GRAY
             }
-
             axisRight.isEnabled = false
+            animateX(500)
 
             // Vô hiệu hóa tương tác nếu chỉ muốn hiển thị tĩnh
             setTouchEnabled(false)

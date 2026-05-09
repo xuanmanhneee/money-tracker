@@ -54,14 +54,9 @@ class TransactionsFragment : Fragment() {
     }
 
     private fun observeData() {
-        // Lắng nghe dữ liệu (StateFlow) từ ViewModel
         viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-
-                viewModel.transactionsUiState.collect { transactionsList ->
-                    // Mỗi khi DB thay đổi, ném list mới vào Adapter
-                    transactionAdapter.submitList(transactionsList)
-                }
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.transactionsUiState.collect(transactionAdapter::submitList)
             }
         }
     }

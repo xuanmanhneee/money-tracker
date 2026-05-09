@@ -60,6 +60,7 @@ class DefaultAppContainer(private val context: Context) : AppContainer {
         DefaultTransactionRepository(
             transactionDao,
             walletDao,
+            categoryDao,
             remoteDataSource
         )
     }

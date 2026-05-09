@@ -7,6 +7,11 @@
     app:cardBackgroundColor="?attr/colorSurface"
     app:cardCornerRadius="12dp"
     app:cardElevation="1dp"
+    android:layout_marginHorizontal="4dp"
+    android:layout_marginVertical="6dp"
+    app:cardBackgroundColor="?attr/colorSurfaceVariant"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="0dp"
     app:strokeWidth="0dp">
 
     <LinearLayout
@@ -16,13 +21,19 @@
         android:orientation="horizontal"
         android:padding="16dp">
 
+        <!-- Icon Ví -->
         <ImageView
             android:id="@+id/ivWalletIcon"
             android:layout_width="40dp"
             android:layout_height="40dp"
+            android:background="@drawable/wallet"
+            android:padding="8dp"
+            android:src="@drawable/wallet"
+            app:tint="@color/green" />
             android:contentDescription="@string/content_desc_wallet_icon"
             android:src="@drawable/wallet" />
 
+        <!-- Thông tin ví -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -37,11 +48,18 @@
                 android:text="@string/wallet_name_placeholder"
                 android:textColor="?android:attr/textColorPrimary"
                 android:textSize="16sp" />
+                android:text="Tiền mặt"
+                android:textColor="@color/text_primary"
+                android:textSize="16sp"
+                android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/tvWalletBalance"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="0 ₫"
+                android:textColor="@color/text_secondary"
                 android:text="@string/zero_balance_placeholder"
                 android:textColor="?android:attr/textColorSecondary"
                 android:textSize="14sp" />
@@ -72,8 +90,14 @@
 
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/btnDeleteWalletContainer"
+        <!-- Nút xóa ví (Tùy chọn) -->
+        <ImageButton
+            android:id="@+id/btnDeleteWallet"
             android:layout_width="32dp"
             android:layout_height="32dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@android:drawable/ic_menu_delete"
+            app:tint="@color/red" />
             app:cardBackgroundColor="#1A000000"
             app:cardCornerRadius="8dp"
             app:cardElevation="0dp"

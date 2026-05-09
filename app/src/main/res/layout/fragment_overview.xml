@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="?attr/colorSurfaceContainerLowest"
@@ -13,84 +12,57 @@
         android:orientation="vertical"
         android:padding="16dp">
 
-        <!-- Top Balance Section -->
+        <!-- Header Row -->
         <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:layout_centerVertical="true"
+                android:text="Tài chính"
+                android:textColor="?android:attr/textColorPrimary"
+                android:textSize="20sp"
+                android:textStyle="bold" />
 
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignParentStart="true"
-                android:layout_toStartOf="@id/btnSearch"
-                android:layout_marginEnd="8dp"
-                android:gravity="center_vertical"
+                android:layout_alignParentEnd="true"
                 android:orientation="horizontal">
 
-                <TextView
-                    android:id="@+id/tvTotalBalance"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:maxLines="1"
-                    android:text="0 ₫"
-                    android:textColor="?android:attr/textColorPrimary"
-                    android:textSize="32sp"
-                    android:textStyle="bold"
-                    app:autoSizeMaxTextSize="32sp"
-                    app:autoSizeMinTextSize="18sp"
-                    app:autoSizeStepGranularity="1sp"
-                    app:autoSizeTextType="uniform" />
+                <ImageButton
+                    android:id="@+id/btnSearch"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:padding="8dp"
+                    android:src="@drawable/search"
+                    app:tint="?android:attr/textColorPrimary" />
 
-                <ImageView
-                    android:id="@+id/ivTotalBalance"
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:padding="6dp"
+                <ImageButton
+                    android:id="@+id/btnNotification"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
                     android:layout_marginStart="8dp"
-                    android:src="@drawable/view"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:padding="8dp"
+                    android:src="@drawable/notification"
                     app:tint="?android:attr/textColorPrimary" />
             </LinearLayout>
-
-            <ImageButton
-                android:id="@+id/btnSearch"
-                android:layout_width="28dp"
-                android:layout_height="28dp"
-                android:layout_centerVertical="true"
-                android:layout_toStartOf="@id/btnNotification"
-                android:layout_marginEnd="20dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:scaleType="fitCenter"
-                android:src="@drawable/search"
-                app:tint="?android:attr/textColorPrimary" />
-
-            <ImageButton
-                android:id="@+id/btnNotification"
-                android:layout_width="28dp"
-                android:layout_height="28dp"
-                android:layout_alignParentEnd="true"
-                android:layout_centerVertical="true"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:scaleType="fitCenter"
-                android:src="@drawable/notification"
-                app:tint="?android:attr/textColorPrimary" />
         </RelativeLayout>
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Tổng số dư"
-            android:layout_marginTop="4dp"
-            android:textColor="?android:attr/textColorSecondary"
-            android:textSize="14sp" />
-
-        <!-- Wallets Card -->
+        <!-- Wallet Card -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="8dp"
             android:layout_marginBottom="20dp"
             app:cardBackgroundColor="?attr/colorSurface"
-            app:cardCornerRadius="16dp"
+            app:cardCornerRadius="20dp"
             app:cardElevation="2dp"
             app:strokeWidth="0dp">
 
@@ -98,7 +70,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:padding="20dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -111,18 +83,21 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="Ví của tôi"
-                        android:textColor="?android:attr/textColorPrimary"
-                        android:textSize="15sp"
+                        android:textColor="?android:attr/textColorSecondary"
+                        android:textSize="14sp"
                         android:textStyle="bold" />
 
                     <TextView
                         android:id="@+id/tvSeeAllWallets"
+                        android:id="@+id/btnViewDetails"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:background="?attr/selectableItemBackground"
                         android:padding="4dp"
-                        android:text="Xem tất cả"
+                        android:text="Xem chi tiết"
                         android:textColor="@color/green"
                         android:textSize="14sp"
+                        android:textStyle="bold" />
                         android:textStyle="bold"
                         android:clickable="true"
                         android:focusable="true"
@@ -130,47 +105,32 @@
 
                 </LinearLayout>
 
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:layout_marginTop="12dp"
-                    android:layout_marginBottom="12dp"
-                    android:background="?android:attr/dividerVertical"
-                    android:alpha="0.2" />
-
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
                     android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:paddingVertical="4dp">
-
-                    <ImageView
-                        android:layout_width="32dp"
-                        android:layout_height="32dp"
-                        android:src="@drawable/wallet" />
+                    android:orientation="horizontal">
 
                     <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp"
-                        android:layout_weight="1"
-                        android:text="Tiền mặt"
-                        android:textColor="?android:attr/textColorPrimary"
-                        android:textSize="15sp"
-                        android:textStyle="bold" />
-
-                    <TextView
+                        android:id="@+id/tvTotalBalance"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="0 ₫"
                         android:textColor="?android:attr/textColorPrimary"
-                        android:textSize="18sp"
+                        android:textSize="32sp"
                         android:textStyle="bold" />
+
+                    <ImageView
+                        android:id="@+id/ivTotalBalanceVisibility"
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:layout_marginStart="12dp"
+                        android:padding="4dp"
+                        android:src="@drawable/view"
+                        app:tint="?android:attr/textColorSecondary" />
                 </LinearLayout>
-
             </LinearLayout>
-
         </com.google.android.material.card.MaterialCardView>
 
         <!-- Report Header -->
@@ -183,7 +143,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Báo cáo tháng này"
+                android:text="Báo cáo chi tiêu"
                 android:textColor="?android:attr/textColorPrimary"
                 android:textSize="15sp"
                 android:textStyle="bold" />
@@ -196,7 +156,6 @@
                 android:textColor="@color/green"
                 android:textSize="14sp"
                 android:textStyle="bold" />
-
         </LinearLayout>
 
         <!-- Chart Card -->
@@ -210,14 +169,12 @@
             app:cardElevation="2dp"
             app:strokeWidth="0dp">
 
-
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:padding="0dp">
 
-                <!-- Expense/Income Tabs -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -230,13 +187,13 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:gravity="center"
-                        android:orientation="vertical">
+                        android:orientation="vertical"
+                        android:background="?attr/selectableItemBackground">
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Tổng chi"
-                            android:textColor="?android:attr/textColorPrimary"
                             android:textSize="14sp"
                             android:textStyle="bold" />
 
@@ -257,13 +214,13 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:gravity="center"
-                        android:orientation="vertical">
+                        android:orientation="vertical"
+                        android:background="?attr/selectableItemBackground">
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Tổng thu"
-                            android:textColor="?android:attr/textColorPrimary"
                             android:textSize="14sp"
                             android:textStyle="bold" />
 
@@ -279,9 +236,7 @@
                     </LinearLayout>
                 </LinearLayout>
 
-                <!-- Custom Divider -->
                 <LinearLayout
-                    android:id="@+id/layoutDivider"
                     android:layout_width="match_parent"
                     android:layout_height="2.5dp"
                     android:orientation="horizontal">
@@ -301,47 +256,46 @@
                         android:background="@color/divider_inactive" />
                 </LinearLayout>
 
-                <!-- Chart -->
                 <com.github.mikephil.charting.charts.LineChart
                     android:id="@+id/lineChart"
                     android:layout_width="match_parent"
                     android:layout_height="250dp"
                     android:layout_marginTop="16dp" />
 
-                <!-- Radio Group Period -->
                 <RadioGroup
                     android:id="@+id/radioGroupPeriod"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
-                    android:gravity="center"
-                    android:orientation="horizontal">
+                    android:orientation="horizontal"
+                    android:weightSum="3">
+
+                    <RadioButton
+                        android:id="@+id/rbThisWeek"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Tuần này"
+                        android:textSize="12sp" />
 
                     <RadioButton
                         android:id="@+id/rbThisMonth"
-                        android:layout_width="wrap_content"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:buttonTint="?android:attr/textColorPrimary"
+                        android:layout_weight="1"
                         android:checked="true"
                         android:text="Tháng này"
-                        android:textColor="?android:attr/textColorPrimary"
-                        android:textSize="14sp" />
+                        android:textSize="12sp" />
 
                     <RadioButton
-                        android:id="@+id/rbLastMonth"
-                        android:layout_width="wrap_content"
+                        android:id="@+id/rbThisYear"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="24dp"
-                        android:buttonTint="?android:attr/textColorPrimary"
-                        android:text="Tháng trước"
-                        android:textColor="?android:attr/textColorPrimary"
-                        android:textSize="14sp" />
+                        android:layout_weight="1"
+                        android:text="Năm này"
+                        android:textSize="12sp" />
                 </RadioGroup>
-
             </LinearLayout>
-
         </com.google.android.material.card.MaterialCardView>
-
     </LinearLayout>
-
 </ScrollView>
