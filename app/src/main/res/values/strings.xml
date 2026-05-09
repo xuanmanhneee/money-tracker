@@ -5,5 +5,20 @@
     <string name="forgot_password">Quên mật khẩu?</string>
     <string name="no_account_yet">Chưa có tài khoản? </string>
     <string name="register_now">Đăng ký ngay</string>
+    <string name="edit_wallet_title">Chỉnh sửa ví</string>
+    <string name="save_changes">LƯU THAY ĐỔI</string>
+    <string name="error_empty_wallet_name">Vui lòng nhập tên ví</string>
+    <string name="wallet_updated">Đã cập nhật ví</string>
+    <string name="add_wallet_title">Thêm ví mới</string>
+    <string name="wallet_name_hint">Tên ví</string>
+    <string name="initial_balance_hint">Số tiền (VND)</string>
+    <string name="btn_add_wallet">THÊM VÍ</string>
+    <string name="content_desc_wallet_icon">Biểu tượng ví</string>
+    <string name="content_desc_account_icon">Biểu tượng tài khoản</string>
+    <string name="content_desc_edit_icon">Biểu tượng sửa</string>
+    <string name="content_desc_delete_icon">Biểu tượng xóa</string>
+    <string name="wallet_name_placeholder">Tên ví</string>
+    <string name="zero_balance_placeholder">0 ₫</string>
+    <string name="balance_format">%1$s ₫</string>
     <string name="default_web_client_id">384962330503-pk8ev7nl440u9pqk3ssp02c9o27flnef.apps.googleusercontent.com</string>
 </resources>

@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?attr/colorSurface"
+    android:overScrollMode="never">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <TextView
+            android:id="@+id/tvTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/add_wallet_title"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="?attr/colorOnSurface"
+            android:gravity="center"
+            android:layout_marginBottom="24dp" />
+
+        <!-- Tên ví -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:padding="12dp"
+            android:background="?attr/colorSurfaceContainerHigh"
+            android:elevation="0dp">
+            <ImageView
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:src="@drawable/wallet"
+                android:contentDescription="@string/content_desc_wallet_icon"/>
+            <EditText
+                android:id="@+id/etWalletName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/wallet_name_hint"
+                android:textColorHint="?android:attr/textColorSecondary"
+                android:textColor="?attr/colorOnSurface"
+                android:textSize="16sp"
+                android:background="@android:color/transparent"
+                android:layout_marginStart="12dp"
+                android:inputType="textCapWords" />
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="?attr/colorOutlineVariant"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Số dư ban đầu -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:padding="12dp"
+            android:background="?attr/colorSurfaceContainerHigh">
+            <ImageView
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:src="@drawable/ic_account"
+                app:tint="@color/green"
+                android:contentDescription="@string/content_desc_account_icon" />
+            <EditText
+                android:id="@+id/etInitialBalance"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/initial_balance_hint"
+                android:inputType="number"
+                android:digits="0123456789."
+                android:textColorHint="?android:attr/textColorSecondary"
+                android:textColor="?attr/colorOnSurface"
+                android:textSize="16sp"
+                android:background="@android:color/transparent"
+                android:layout_marginStart="12dp" />
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="?attr/colorOutlineVariant"
+            android:layout_marginBottom="32dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnAddWallet"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:text="@string/btn_add_wallet"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:cornerRadius="12dp"
+            app:backgroundTint="@color/green"
+            android:textColor="@android:color/white" />
+
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>
