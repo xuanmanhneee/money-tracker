@@ -2,6 +2,7 @@ package com.finflow.moneytracker.ui.overview
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.finflow.moneytracker.data.local.dao.TransactionDao
 import com.finflow.moneytracker.data.repository.TransactionRepository
 import com.finflow.moneytracker.data.repository.WalletRepository
 import kotlinx.coroutines.flow.*
@@ -12,6 +13,7 @@ class OverviewViewModel(
     private val walletRepo: WalletRepository,
     private val transactionRepo: TransactionRepository
 ) : ViewModel() {
+
 
     // Lọc theo mốc thời gian (Tuần, Tháng, Năm)
     private val _selectedPeriod = MutableStateFlow("MONTH")
@@ -47,6 +49,31 @@ class OverviewViewModel(
     fun setPeriod(period: String) {
         _selectedPeriod.value = period
     }
+
+    // Thêm vào OverviewViewModel, sau overviewStats
+
+    // Tab đang chọn (expense/income) — Fragment sẽ update
+    private val _isExpenseTab = MutableStateFlow(true)
+
+    fun setExpenseTab(isExpense: Boolean) {
+        _isExpenseTab.value = isExpense
+    }
+
+    // Flow chính: tự động re-emit khi đổi period hoặc đổi tab
+    val chartData: StateFlow<List<TransactionDao.ChartPoint>> = combine(
+        _selectedPeriod,
+        _isExpenseTab
+    ) { period, isExpense -> period to isExpense }
+        .flatMapLatest { (period, isExpense) ->
+            val range = getTimeRange(period)
+            val type = if (isExpense) 0 else 1  // 0: Chi, 1: Thu — khớp với CategoryType
+            transactionRepo.getChartDataStream(type, period, range.first, range.second)
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
 
     private fun getTimeRange(period: String): Pair<Long, Long> {
         val cal = Calendar.getInstance()

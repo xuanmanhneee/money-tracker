@@ -24,6 +24,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.finflow.moneytracker.MoneyTrackerApplication
 import com.finflow.moneytracker.R
+import com.finflow.moneytracker.data.local.dao.TransactionDao
 import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.data.Entry
@@ -90,20 +91,24 @@ class OverviewFragment : Fragment(R.layout.fragment_overview) {
     private fun observeViewModel() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                // 1. Cập nhật Tổng số dư
                 launch {
-                    viewModel.totalBalance.collect { balance: Double ->
+                    viewModel.totalBalance.collect { balance ->
                         actualBalance = balance
                         updateBalanceUI()
                     }
                 }
 
-                // 2. Cập nhật Thu/Chi & Biểu đồ
                 launch {
                     viewModel.overviewStats.collect { stats ->
                         tvTotalExpense.text = formatCurrency(stats.expense.toDouble())
                         tvTotalIncome.text = formatCurrency(stats.income.toDouble())
-                        setupChart(isExpenseTabSelected, getCurrentMaxAxis())
+                    }
+                }
+
+                // Observe chart data — tự cập nhật khi period/tab thay đổi
+                launch {
+                    viewModel.chartData.collect { points ->
+                        setupChart(points)
                     }
                 }
             }
@@ -181,16 +186,16 @@ class OverviewFragment : Fragment(R.layout.fragment_overview) {
 
     private fun selectExpenseTab() {
         isExpenseTabSelected = true
+        viewModel.setExpenseTab(true)
         animateDividerColor(viewDividerLeft, ContextCompat.getColor(requireContext(), R.color.red))
         animateDividerColor(viewDividerRight, ContextCompat.getColor(requireContext(), R.color.divider_inactive))
-        setupChart(true, getCurrentMaxAxis())
     }
 
     private fun selectIncomeTab() {
         isExpenseTabSelected = false
+        viewModel.setExpenseTab(false)
         animateDividerColor(viewDividerLeft, ContextCompat.getColor(requireContext(), R.color.divider_inactive))
         animateDividerColor(viewDividerRight, ContextCompat.getColor(requireContext(), R.color.blue))
-        setupChart(false, getCurrentMaxAxis())
     }
 
     private fun getCurrentMaxAxis(): Float {
@@ -215,12 +220,21 @@ class OverviewFragment : Fragment(R.layout.fragment_overview) {
         return formatter.format(amount).replace("₫", "").trim() + " ₫"
     }
 
-    private fun setupChart(isExpense: Boolean, maxAxisValue: Float) {
-        // Ở đây bạn nên lấy dữ liệu thực tế từ ViewModel để vẽ Entry thay vì data mẫu
-        val entries = listOf(Entry(1f, 0f), Entry(maxAxisValue, 0f))
-
-        val chartColor = ContextCompat.getColor(requireContext(), if (isExpense) R.color.red else R.color.blue)
+    // Xóa setupChart cũ, thay bằng cái này
+    private fun setupChart(points: List<TransactionDao.ChartPoint>) {
+        val maxAxis = getCurrentMaxAxis()
+        val chartColor = ContextCompat.getColor(
+            requireContext(),
+            if (isExpenseTabSelected) R.color.red else R.color.blue
+        )
         val textColor = ContextCompat.getColor(requireContext(), R.color.text_primary)
+
+        // Map ChartPoint → Entry, thêm điểm đầu/cuối để chart không bị cắt
+        val entries = buildList {
+            add(Entry(1f, 0f))  // điểm neo đầu
+            points.forEach { add(Entry(it.xValue.toFloat(), it.yValue.toFloat())) }
+            add(Entry(maxAxis, 0f))  // điểm neo cuối
+        }.sortedBy { it.x }
 
         val dataSet = LineDataSet(entries, "").apply {
             color = chartColor
@@ -243,7 +257,7 @@ class OverviewFragment : Fragment(R.layout.fragment_overview) {
                 this.textColor = textColor
                 setDrawGridLines(false)
                 axisMinimum = 1f
-                axisMaximum = maxAxisValue
+                axisMaximum = maxAxis
             }
             axisLeft.apply {
                 this.textColor = textColor

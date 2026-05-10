@@ -210,45 +210,6 @@
                     <ImageView android:layout_width="16dp" android:layout_height="16dp" android:src="@android:drawable/ic_media_play" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toTopOf="parent" app:tint="#BDBDBD" />
                 </androidx.constraintlayout.widget.ConstraintLayout>
 
-                <!-- Hỗ trợ & Phản hồi (Thay cho Buy me a coffee) -->
-                <androidx.constraintlayout.widget.ConstraintLayout
-                    android:id="@+id/item_support"
-                    android:layout_width="match_parent"
-                    android:layout_height="56dp"
-                    android:background="?attr/selectableItemBackground"
-                    android:paddingHorizontal="16dp">
-
-                    <ImageView
-                        android:id="@+id/ic_support"
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:src="@android:drawable/ic_menu_help"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toTopOf="parent"
-                        app:tint="#607D8B" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="16dp"
-                        android:text="Hỗ trợ &amp; Phản hồi"
-                        android:textColor="?android:attr/textColorPrimary"
-                        android:textSize="15sp"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintStart_toEndOf="@id/ic_support"
-                        app:layout_constraintTop_toTopOf="parent" />
-
-                    <ImageView
-                        android:layout_width="16dp"
-                        android:layout_height="16dp"
-                        android:src="@android:drawable/ic_media_play"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintTop_toTopOf="parent"
-                        app:tint="#BDBDBD" />
-                </androidx.constraintlayout.widget.ConstraintLayout>
-
                 <!-- Giới thiệu -->
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:id="@+id/item_about"

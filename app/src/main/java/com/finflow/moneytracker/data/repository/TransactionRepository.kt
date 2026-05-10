@@ -15,6 +15,14 @@ interface TransactionRepository {
     fun getTransactionsByWalletStream(walletId: Long): Flow<List<Transaction>>
     fun getTotalAmountStream(type: Int, startDate: Long, endDate: Long): Flow<Long?>
 
+    // Trong interface TransactionRepository
+    fun getChartDataStream(
+        type: Int,
+        period: String,
+        startDate: Long,
+        endDate: Long
+    ): Flow<List<TransactionDao.ChartPoint>>
+
     suspend fun insertTransaction(transaction: Transaction)
     suspend fun updateTransaction(transaction: Transaction)
     suspend fun deleteTransaction(transaction: Transaction)
@@ -109,6 +117,17 @@ class DefaultTransactionRepository(
         } catch (e: Exception) {
             android.util.Log.e("SyncError", "Sync failed: ${e.message}")
         }
+    }
+
+    // Trong DefaultTransactionRepository
+    override fun getChartDataStream(
+        type: Int,
+        period: String,
+        startDate: Long,
+        endDate: Long
+    ): Flow<List<TransactionDao.ChartPoint>> = when (period) {
+        "YEAR" -> transactionDao.getChartDataByMonth(type, startDate, endDate)
+        else   -> transactionDao.getChartDataByDay(type, startDate, endDate)
     }
 
 }

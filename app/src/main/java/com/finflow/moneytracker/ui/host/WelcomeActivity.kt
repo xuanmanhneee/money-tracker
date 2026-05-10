@@ -10,6 +10,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.work.OneTimeWorkRequestBuilder
@@ -29,28 +30,14 @@ class WelcomeActivity : AppCompatActivity() {
     private lateinit var auth: FirebaseAuth
     private lateinit var googleSignInClient: GoogleSignInClient
     private lateinit var signInLauncher: ActivityResultLauncher<Intent>
-    private lateinit var progressBar: ProgressBar // Nên có để báo hiệu đang sync
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        installSplashScreen()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_welcome)
 
         auth = FirebaseAuth.getInstance()
-        progressBar = findViewById(R.id.progress_loading) // Đảm bảo ID này có trong layout
-
-        // 1. Kiểm tra trạng thái đăng nhập tự động
-        val currentUser = auth.currentUser
-        if (currentUser != null) {
-            updateUserCache(currentUser)
-
-            // Hiện loading và đợi đồng bộ xong mới cho vào app
-            showLoading(true)
-            triggerInitialSync {
-                startMainActivity()
-            }
-            return
-        }
 
         setupGoogleSignIn()
 
@@ -60,23 +47,18 @@ class WelcomeActivity : AppCompatActivity() {
             insets
         }
 
-        val btnLogin = findViewById<Button>(R.id.btn_login)
-        val btnGuest = findViewById<Button>(R.id.btn_guest)
-
-        btnLogin.setOnClickListener {
+        findViewById<Button>(R.id.btn_login).setOnClickListener {
             signInWithGoogle()
         }
 
-        btnGuest.setOnClickListener {
-            showLoading(true)
+        findViewById<Button>(R.id.btn_guest).setOnClickListener {
             auth.signInAnonymously()
                 .addOnCompleteListener { task ->
                     if (task.isSuccessful) {
                         UserPrefs.saveUser(this, "Tài khoản khách", null, null)
-                        // Khách thường không có dữ liệu cloud cũ, nhưng vẫn sync để chắc chắn
-                        triggerInitialSync { startMainActivity() }
+                        goToLoading(enqueueSyncWorker())
                     } else {
-                        showLoading(false)
+                        // showLoading(false)
                         Toast.makeText(this, "Lỗi: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
                     }
                 }
@@ -98,7 +80,6 @@ class WelcomeActivity : AppCompatActivity() {
                     val account = task.getResult(ApiException::class.java)!!
                     firebaseAuthWithGoogle(account.idToken!!)
                 } catch (e: ApiException) {
-                    showLoading(false)
                     Toast.makeText(this, "Lỗi Google: ${e.message}", Toast.LENGTH_SHORT).show()
                 }
             }
@@ -106,7 +87,6 @@ class WelcomeActivity : AppCompatActivity() {
     }
 
     private fun signInWithGoogle() {
-        showLoading(true)
         googleSignInClient.signOut().addOnCompleteListener {
             signInLauncher.launch(googleSignInClient.signInIntent)
         }
@@ -117,63 +97,34 @@ class WelcomeActivity : AppCompatActivity() {
         auth.signInWithCredential(credential)
             .addOnCompleteListener(this) { task ->
                 if (task.isSuccessful) {
-                    val user = auth.currentUser
-                    updateUserCache(user)
-
-                    Toast.makeText(this, "Đang đồng bộ dữ liệu...", Toast.LENGTH_SHORT).show()
-                    triggerInitialSync {
-                        startMainActivity()
-                    }
+                    updateUserCache(auth.currentUser)
+                    goToLoading(enqueueSyncWorker())
                 } else {
-                    showLoading(false)
+                    //showLoading(false)
                     Toast.makeText(this, "Lỗi xác thực: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
                 }
             }
     }
 
-    /**
-     * Đồng bộ dữ liệu Firestore và đợi kết quả
-     */
-    private fun triggerInitialSync(onComplete: () -> Unit) {
+    private fun enqueueSyncWorker(): java.util.UUID {
         val syncRequest = OneTimeWorkRequestBuilder<FirestoreSyncWorker>().build()
-        val workManager = WorkManager.getInstance(this)
-
-        workManager.enqueue(syncRequest)
-
-        // Quan sát trạng thái Worker thông qua LiveData
-        workManager.getWorkInfoByIdLiveData(syncRequest.id).observe(this) { workInfo ->
-            if (workInfo != null && workInfo.state.isFinished) {
-                onComplete()
-            }
-        }
+        WorkManager.getInstance(this).enqueue(syncRequest)
+        return syncRequest.id
     }
 
-    /**
-     * Cập nhật thông tin vào SharedPreferences để các màn hình sau dùng ngay
-     */
     private fun updateUserCache(user: com.google.firebase.auth.FirebaseUser?) {
         if (user == null) return
         if (user.isAnonymous) {
             UserPrefs.saveUser(this, "Tài khoản khách", null, null)
         } else {
-            UserPrefs.saveUser(
-                this,
-                user.displayName,
-                user.email,
-                user.photoUrl?.toString()
-            )
+            UserPrefs.saveUser(this, user.displayName, user.email, user.photoUrl?.toString())
         }
     }
 
-    private fun showLoading(isLoading: Boolean) {
-        progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
-        // Vô hiệu hóa nút để tránh bấm nhiều lần
-        findViewById<Button>(R.id.btn_login).isEnabled = !isLoading
-        findViewById<Button>(R.id.btn_guest).isEnabled = !isLoading
-    }
-
-    private fun startMainActivity() {
-        val intent = Intent(this, MainActivity::class.java)
+    private fun goToLoading(workId: java.util.UUID) {
+        val intent = Intent(this, LoadingActivity::class.java).apply {
+            putExtra("WORK_ID", workId.toString())
+        }
         startActivity(intent)
         finish()
     }

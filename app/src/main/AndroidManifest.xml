@@ -7,16 +7,17 @@
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@mipmap/ic_logo"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
+        android:roundIcon="@mipmap/ic_logo_round"
         android:supportsRtl="true"
         android:hardwareAccelerated="true"
         android:theme="@style/Theme.MoneyTracker">
 
-        <!-- WelcomeActivity là màn hình khởi đầu mới -->
+        <!-- SplashActivity: launcher duy nhất -->
         <activity
-            android:name="com.finflow.moneytracker.ui.host.WelcomeActivity"
+            android:name="com.finflow.moneytracker.ui.host.SplashActivity"
+            android:theme="@style/Theme.App.Starting"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -24,7 +25,17 @@
             </intent-filter>
         </activity>
 
-        <!-- MainActivity không còn là Launcher nữa -->
+        <!-- LoadingActivity: hiện GIF khi đã đăng nhập -->
+        <activity
+            android:name="com.finflow.moneytracker.ui.host.LoadingActivity"
+            android:exported="false" />
+
+        <!-- WelcomeActivity: đăng nhập -->
+        <activity
+            android:name="com.finflow.moneytracker.ui.host.WelcomeActivity"
+            android:exported="false" />
+
+        <!-- MainActivity -->
         <activity
             android:name="com.finflow.moneytracker.ui.host.MainActivity"
             android:exported="false" />

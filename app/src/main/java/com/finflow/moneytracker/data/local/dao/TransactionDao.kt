@@ -33,4 +33,36 @@ interface TransactionDao {
         WHERE c.type = :type AND t.date BETWEEN :startDate AND :endDate AND t.is_deleted = 0
     """)
     fun getTotalAmountByTypeAndDateRange(type: Int, startDate: Long, endDate: Long): Flow<Long?>
+
+    // Trong TransactionDao.kt
+
+    // Trả về list điểm (x = ngày/tháng, y = tổng tiền)
+    @Query("""
+    SELECT 
+        CAST(strftime('%d', datetime(date / 1000, 'unixepoch', 'localtime')) AS INTEGER) AS xValue,
+        SUM(amount) AS yValue
+    FROM transactions
+    WHERE date BETWEEN :startDate AND :endDate
+      AND category_id IN (SELECT id FROM categories WHERE type = :type)
+      AND is_deleted = 0
+    GROUP BY xValue
+    ORDER BY xValue ASC
+""")
+    fun getChartDataByDay(type: Int, startDate: Long, endDate: Long): Flow<List<ChartPoint>>
+
+    @Query("""
+    SELECT 
+        CAST(strftime('%m', datetime(date / 1000, 'unixepoch', 'localtime')) AS INTEGER) AS xValue,
+        SUM(amount) AS yValue
+    FROM transactions
+    WHERE date BETWEEN :startDate AND :endDate
+      AND category_id IN (SELECT id FROM categories WHERE type = :type)
+      AND is_deleted = 0
+    GROUP BY xValue
+    ORDER BY xValue ASC
+""")
+    fun getChartDataByMonth(type: Int, startDate: Long, endDate: Long): Flow<List<ChartPoint>>
+
+    // Data class ánh xạ kết quả query
+    data class ChartPoint(val xValue: Int, val yValue: Long)
 }
