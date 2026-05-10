@@ -4,22 +4,24 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
-import android.widget.Button
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatDelegate
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.work.Constraints
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
+import com.bumptech.glide.Glide
 import com.finflow.moneytracker.R
 import com.finflow.moneytracker.data.local.AppDatabase
 import com.finflow.moneytracker.data.sync.FirestoreSyncWorker
 import com.finflow.moneytracker.ui.host.WelcomeActivity
+import com.finflow.moneytracker.utils.UserPrefs // Import cache
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
@@ -37,50 +39,86 @@ class AccountFragment : Fragment(R.layout.fragment_account) {
 
         auth = FirebaseAuth.getInstance()
 
-        val layoutUserDetails = view.findViewById<View>(R.id.layout_user_details)
-        val btnGoogleAction = view.findViewById<Button>(R.id.btn_google_signin)
-        val itemLogout = view.findViewById<View>(R.id.item_logout_action)
-        val tvUserName = view.findViewById<TextView>(R.id.tv_display_name) 
+        // 1. Ánh xạ View
+        val layoutProfile = view.findViewById<View>(R.id.layout_profile)
+        val ivAvatar = view.findViewById<ImageView>(R.id.iv_avatar_main)
+        val tvUserName = view.findViewById<TextView>(R.id.tv_display_name)
+        val btnGoogleAction = view.findViewById<MaterialButton>(R.id.btn_google_signin)
+        val layoutAccountInfo = view.findViewById<View>(R.id.layout_account_info)
         val tvUserEmail = view.findViewById<TextView>(R.id.tv_display_email)
         val tvUserUid = view.findViewById<TextView>(R.id.tv_user_uid)
-        
-        val itemTheme = view.findViewById<View>(R.id.item_theme_action)
-        val tvThemeStatus = view.findViewById<TextView>(R.id.tv_theme_val)
+        val itemLogout = view.findViewById<View>(R.id.item_logout_action)
 
+        // 2. Hàm cập nhật giao diện (Ưu tiên Cache -> Cập nhật Firebase)
         fun refreshUI() {
             val user = auth.currentUser
-            if (user != null) {
-                if (user.isAnonymous) {
-                    layoutUserDetails?.visibility = View.VISIBLE
-                    btnGoogleAction?.visibility = View.VISIBLE
-                    btnGoogleAction?.text = "Liên kết tài khoản Google"
-                    itemLogout?.visibility = View.VISIBLE
-                    tvUserName?.text = "Khách hàng"
-                    tvUserEmail?.text = "Chưa đồng bộ (Dữ liệu local)"
-                } else {
-                    layoutUserDetails?.visibility = View.VISIBLE
-                    btnGoogleAction?.visibility = View.GONE
-                    itemLogout?.visibility = View.VISIBLE
-                    tvUserName?.text = user.displayName ?: "Người dùng"
-                    tvUserEmail?.text = user.email
-                }
-                tvUserUid?.text = "UID: ${user.uid}"
-            } else {
-                layoutUserDetails?.visibility = View.GONE
+            val context = requireContext()
+
+            // --- BƯỚC 1: ĐỌC TỪ CACHE (HIỂN THỊ TỨC THÌ) ---
+            val cachedName = UserPrefs.getName(context)
+            val cachedPhoto = UserPrefs.getPhoto(context)
+            val cachedEmail = UserPrefs.getEmail(context)
+
+            if (!cachedName.isNullOrBlank()) tvUserName?.text = cachedName
+            if (!cachedEmail.isNullOrBlank()) tvUserEmail?.text = cachedEmail
+            if (!cachedPhoto.isNullOrBlank()) {
+                Glide.with(this).load(cachedPhoto).circleCrop().placeholder(R.drawable.user).into(ivAvatar!!)
+            }
+
+            // --- BƯỚC 2: LOGIC FIREBASE (CẬP NHẬT THỰC TẾ) ---
+            layoutProfile?.visibility = View.VISIBLE
+
+            if (user == null) {
+                tvUserName?.text = "Chưa đăng nhập"
+                ivAvatar?.setImageResource(R.drawable.user)
                 btnGoogleAction?.visibility = View.VISIBLE
-                btnGoogleAction?.text = "Đăng nhập với Google"
+                layoutAccountInfo?.visibility = View.GONE
                 itemLogout?.visibility = View.GONE
+            } else if (user.isAnonymous) {
+                tvUserName?.text = "Tài khoản khách"
+                ivAvatar?.setImageResource(R.drawable.user)
+                btnGoogleAction?.visibility = View.VISIBLE
+                btnGoogleAction?.text = "Liên kết tài khoản"
+                layoutAccountInfo?.visibility = View.GONE
+                itemLogout?.visibility = View.VISIBLE
+            } else {
+                btnGoogleAction?.visibility = View.GONE
+                layoutAccountInfo?.visibility = View.VISIBLE
+                itemLogout?.visibility = View.VISIBLE
+
+                // Tìm thông tin "tươi" nhất từ Firebase
+                var finalName: String? = user.displayName
+                var finalPhotoUrl = user.photoUrl
+
+                for (profile in user.providerData) {
+                    if (finalName == null) finalName = profile.displayName
+                    if (finalPhotoUrl == null) finalPhotoUrl = profile.photoUrl
+                }
+
+                // Cập nhật UI nếu có thay đổi so với Cache
+                val nameToShow = if (finalName.isNullOrBlank()) "Người dùng" else finalName
+                tvUserName?.text = nameToShow
+                tvUserEmail?.text = user.email
+                tvUserUid?.text = "UID: ${user.uid}"
+
+                if (finalPhotoUrl != null) {
+                    Glide.with(this).load(finalPhotoUrl).circleCrop().into(ivAvatar!!)
+                }
+
+                // ĐỒNG BỘ NGƯỢC LẠI CACHE (Nếu thông tin trên Cloud có thay đổi)
+                UserPrefs.saveUser(context, nameToShow, user.email, finalPhotoUrl?.toString())
             }
         }
 
         refreshUI()
 
+        // 3. Xử lý Click Events
         btnGoogleAction?.setOnClickListener { signInWithGoogle() }
 
         itemLogout?.setOnClickListener {
             val user = auth.currentUser
             val message = if (user?.isAnonymous == true) {
-                "CẢNH BÁO: Dữ liệu của bạn chưa được liên kết. Nếu đăng xuất, TOÀN BỘ dữ liệu sẽ bị xóa. Bạn có chắc chắn không?"
+                "CẢNH BÁO: Dữ liệu chưa liên kết sẽ bị mất vĩnh viễn. Bạn có chắc muốn đăng xuất?"
             } else {
                 "Bạn có muốn đăng xuất và xóa dữ liệu tạm trên máy không?"
             }
@@ -89,18 +127,14 @@ class AccountFragment : Fragment(R.layout.fragment_account) {
                 .setTitle("Đăng xuất")
                 .setMessage(message)
                 .setNegativeButton("Hủy", null)
-                .setPositiveButton("Đăng xuất & Xóa dữ liệu") { _, _ ->
+                .setPositiveButton("Đăng xuất & Xóa") { _, _ ->
                     performLogoutAndClearData()
                 }
                 .show()
         }
-
-        val sharedPref = requireActivity().getSharedPreferences("settings", Context.MODE_PRIVATE)
-        val savedMode = sharedPref.getInt("theme_mode", AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
-        tvThemeStatus?.text = getThemeName(savedMode)
-        itemTheme?.setOnClickListener { showThemeSelectionDialog(tvThemeStatus!!) }
     }
 
+    // --- LOGIC ĐĂNG NHẬP GOOGLE ---
     private fun signInWithGoogle() {
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestIdToken(getString(R.string.default_web_client_id))
@@ -128,81 +162,45 @@ class AccountFragment : Fragment(R.layout.fragment_account) {
         val user = auth.currentUser
 
         if (user != null && user.isAnonymous) {
-            user.linkWithCredential(credential)
-                .addOnCompleteListener { task ->
-                    if (task.isSuccessful) {
-                        Toast.makeText(context, "Liên kết thành công! Đang đồng bộ...", Toast.LENGTH_LONG).show()
-                        triggerSync() // KÍCH HOẠT SYNC NGAY
-                        requireActivity().recreate()
-                    } else {
-                        Toast.makeText(context, "Lỗi: ${task.exception?.message}", Toast.LENGTH_LONG).show()
-                    }
+            user.linkWithCredential(credential).addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    Toast.makeText(context, "Liên kết thành công!", Toast.LENGTH_SHORT).show()
+                    triggerSync()
+                    requireActivity().recreate()
+                } else {
+                    Toast.makeText(context, "Lỗi: ${task.exception?.message}", Toast.LENGTH_LONG).show()
                 }
+            }
         } else {
-            auth.signInWithCredential(credential)
-                .addOnCompleteListener { task ->
-                    if (task.isSuccessful) {
-                        triggerSync()
-                        requireActivity().recreate()
-                    }
+            auth.signInWithCredential(credential).addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    triggerSync()
+                    requireActivity().recreate()
                 }
+            }
         }
     }
 
     private fun triggerSync() {
-        val constraints = Constraints.Builder()
-            .setRequiredNetworkType(NetworkType.CONNECTED)
-            .build()
-
-        val syncRequest = OneTimeWorkRequestBuilder<FirestoreSyncWorker>()
-            .setConstraints(constraints)
-            .build()
-
-        WorkManager.getInstance(requireContext().applicationContext)
-            .enqueue(syncRequest)
+        val constraints = Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
+        val syncRequest = OneTimeWorkRequestBuilder<FirestoreSyncWorker>().setConstraints(constraints).build()
+        WorkManager.getInstance(requireContext().applicationContext).enqueue(syncRequest)
     }
 
     private fun performLogoutAndClearData() {
         lifecycleScope.launch {
             auth.signOut()
+
+            // XÓA CACHE TRƯỚC KHI RỜI ĐI
+            UserPrefs.clear(requireContext())
+
             withContext(Dispatchers.IO) {
                 AppDatabase.getDatabase(requireContext()).clearAllTables()
             }
+
             val intent = Intent(requireContext(), WelcomeActivity::class.java)
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             startActivity(intent)
         }
-    }
-
-    private fun showThemeSelectionDialog(tvCurrentTheme: TextView) {
-        val themes = arrayOf("Sáng", "Tối", "Hệ thống")
-        val sharedPref = requireActivity().getSharedPreferences("settings", Context.MODE_PRIVATE)
-        val savedMode = sharedPref.getInt("theme_mode", AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
-        val checkedItem = when (savedMode) {
-            AppCompatDelegate.MODE_NIGHT_NO -> 0
-            AppCompatDelegate.MODE_NIGHT_YES -> 1
-            else -> 2
-        }
-
-        MaterialAlertDialogBuilder(requireContext())
-            .setTitle("Chọn giao diện")
-            .setSingleChoiceItems(themes, checkedItem) { dialog, which ->
-                val mode = when (which) {
-                    0 -> AppCompatDelegate.MODE_NIGHT_NO
-                    1 -> AppCompatDelegate.MODE_NIGHT_YES
-                    else -> AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
-                }
-                sharedPref.edit().putInt("theme_mode", mode).apply()
-                AppCompatDelegate.setDefaultNightMode(mode)
-                tvCurrentTheme.text = themes[which]
-                dialog.dismiss()
-            }
-            .show()
-    }
-
-    private fun getThemeName(mode: Int): String = when (mode) {
-        AppCompatDelegate.MODE_NIGHT_NO -> "Sáng"
-        AppCompatDelegate.MODE_NIGHT_YES -> "Tối"
-        else -> "Hệ thống"
     }
 }

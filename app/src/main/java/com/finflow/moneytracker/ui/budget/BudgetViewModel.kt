@@ -16,6 +16,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 
+// --- UI Models ---
+
 enum class BudgetProgressState {
     SAFE,
     WARNING,
@@ -25,6 +27,7 @@ enum class BudgetProgressState {
 data class BudgetCategoryProgressUi(
     val categoryId: String,
     val categoryName: String,
+    val iconEmoji: String?,
     val allocated: Long,
     val spent: Long,
     val remaining: Long,
@@ -42,15 +45,17 @@ data class BudgetUiState(
     val usagePercent: Int = 0,
     val progressState: BudgetProgressState = BudgetProgressState.SAFE,
     val alertMessage: String? = null,
-    val comparisonMessage: String? = null,
     val categoryProgress: List<BudgetCategoryProgressUi> = emptyList()
 )
+
+// --- ViewModel ---
 
 class BudgetViewModel(
     walletRepository: WalletRepository,
     categoryRepository: CategoryRepository,
     private val transactionRepository: TransactionRepository
 ) : ViewModel() {
+
     private val currentDateFlow = MutableStateFlow(System.currentTimeMillis())
 
     val uiState: StateFlow<BudgetUiState> = combine(
@@ -59,61 +64,57 @@ class BudgetViewModel(
         categoryRepository.getAllCategoriesStream(),
         transactionRepository.getAllTransactionsStream()
     ) { date, _, categories, transactions ->
-        
+
         val (periodStart, periodEnd) = getMonthRange(date)
 
+        // Lọc các danh mục chi tiêu hợp lệ
         val expenseCategories = categories.filter {
             it.type == CategoryType.EXPENSE && !it.isDeleted
         }
-
         val expenseCategoryIds = expenseCategories.map { it.id }.toSet()
 
+        // Lọc giao dịch trong tháng của các danh mục chi tiêu
         val currentMonthTransactions = transactions.filter { tx ->
             !tx.isDeleted &&
                     tx.date in periodStart..periodEnd &&
                     tx.categoryId in expenseCategoryIds &&
-                    tx.toWalletId == null
+                    tx.toWalletId == null // Đảm bảo không phải giao dịch chuyển khoản
         }
 
+        // Tính tổng hạn mức (planned) và tổng đã chi (spent)
         val totalPlanned = expenseCategories.sumOf { it.monthlyBudgetLimit ?: 0L }
-        
-        if (totalPlanned == 0L) {
-            return@combine BudgetUiState(
-                isLoading = false,
-                isEmpty = true,
-                periodLabel = formatPeriodLabel(date)
-            )
-        }
-
         val totalSpent = currentMonthTransactions.sumOf { abs(it.amount) }
-        val totalRemaining = (totalPlanned - totalSpent).coerceAtLeast(0L)
-        val totalUsagePercent = percentage(totalSpent, totalPlanned)
 
+        // Tính chi tiêu theo từng Category ID
         val spentByCategory = currentMonthTransactions
             .groupBy { it.categoryId }
             .mapValues { (_, txs) -> txs.sumOf { abs(it.amount) } }
 
-        val categoryProgress = expenseCategories
-            .filter { (it.monthlyBudgetLimit ?: 0L) > 0L }
-            .map { category ->
-                val allocated = category.monthlyBudgetLimit ?: 0L
-                val spent = spentByCategory[category.id] ?: 0L
-                val usage = percentage(spent, allocated)
-                
-                BudgetCategoryProgressUi(
-                    categoryId = category.id.toString(),
-                    categoryName = category.name,
-                    allocated = allocated,
-                    spent = spent,
-                    remaining = allocated - spent,
-                    usagePercent = usage,
-                    progressState = mapUsageToState(usage)
-                )
-            }.sortedByDescending { it.spent }
+        // Mapping danh sách tiến độ từng hạng mục (Hiển thị tất cả, không filter hạn mức > 0)
+        val categoryProgress = expenseCategories.map { category ->
+            val allocated = category.monthlyBudgetLimit ?: 0L
+            val spent = spentByCategory[category.id] ?: 0L
+            val usage = percentage(spent, allocated)
+
+            BudgetCategoryProgressUi(
+                categoryId = category.id.toString(),
+                categoryName = category.name,
+                iconEmoji = category.icon,   // ← thêm dòng này, tên field tùy entity của bạn
+                allocated = allocated,
+                spent = spent,
+                remaining = (allocated - spent).coerceAtLeast(0L),
+                usagePercent = usage,
+                progressState = mapUsageToState(usage)
+            )
+        }.sortedByDescending { it.spent } // Ưu tiên hiện mục tiêu nhiều tiền lên đầu
+
+        // Tính toán các thông số tổng quát
+        val totalRemaining = (totalPlanned - totalSpent).coerceAtLeast(0L)
+        val totalUsagePercent = percentage(totalSpent, totalPlanned)
 
         BudgetUiState(
             isLoading = false,
-            isEmpty = false,
+            isEmpty = categoryProgress.isEmpty(),
             periodLabel = formatPeriodLabel(date),
             plannedBudget = totalPlanned,
             spent = totalSpent,
@@ -133,6 +134,8 @@ class BudgetViewModel(
         currentDateFlow.value = System.currentTimeMillis()
     }
 
+    // --- Helper Functions ---
+
     private fun getMonthRange(timestamp: Long): Pair<Long, Long> {
         val calendar = Calendar.getInstance().apply {
             timeInMillis = timestamp
@@ -150,7 +153,7 @@ class BudgetViewModel(
 
     private fun percentage(value: Long, total: Long): Int {
         if (total <= 0L) return 0
-        return ((value * 100f) / total).toInt().coerceIn(0, 100)
+        return ((value * 100f) / total).toInt()
     }
 
     private fun mapUsageToState(usagePercent: Int): BudgetProgressState {
@@ -163,8 +166,8 @@ class BudgetViewModel(
 
     private fun buildAlertMessage(usagePercent: Int): String? {
         return when {
-            usagePercent >= 100 -> "Đã vượt ngân sách"
-            usagePercent >= 80 -> "Sắp chạm hạn mức (80%)"
+            usagePercent >= 100 -> "Đã vượt ngân sách tháng"
+            usagePercent >= 80 -> "Cảnh báo: Chi tiêu sắp chạm hạn mức"
             else -> null
         }
     }

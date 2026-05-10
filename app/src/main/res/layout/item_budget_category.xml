@@ -3,91 +3,105 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="8dp"
+    android:layout_marginBottom="10dp"
     app:cardBackgroundColor="@color/dark_grey"
-    app:cardCornerRadius="14dp"
+    app:cardCornerRadius="16dp"
     app:cardElevation="0dp"
     app:strokeColor="@color/divider"
     app:strokeWidth="1dp">
 
-    <LinearLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="10dp">
+        android:padding="16dp">
 
+        <!-- Icon box -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardCategoryIcon"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            app:cardBackgroundColor="@color/icon_bg_default"
+            app:cardCornerRadius="10dp"
+            app:cardElevation="0dp"
+            app:strokeWidth="0dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <ImageView
+                android:id="@+id/ivCategoryIcon"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_gravity="center"
+                android:scaleType="centerInside"
+                android:src="@drawable/ic_category_default" />
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Tên danh mục -->
         <TextView
             android:id="@+id/tvCategoryName"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="Ăn uống"
+            android:layout_marginStart="12dp"
+            android:text="Tên danh mục"
             android:textColor="@color/text_primary"
-            android:textSize="14sp"
-            android:textStyle="bold" />
+            android:textSize="15sp"
+            android:textStyle="bold"
+            app:layout_constraintStart_toEndOf="@id/cardCategoryIcon"
+            app:layout_constraintTop_toTopOf="@id/cardCategoryIcon"
+            app:layout_constraintEnd_toStartOf="@id/tvAmountSummary" />
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:orientation="horizontal">
-
-            <TextView
-                android:id="@+id/tvCategoryAllocated"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Ngân sách: 0 ₫"
-                android:textColor="@color/text_secondary"
-                android:textSize="11sp" />
-
-            <TextView
-                android:id="@+id/tvCategorySpent"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="end"
-                android:text="Đã chi: 0 ₫"
-                android:textColor="@color/status_expense"
-                android:textSize="11sp" />
-        </LinearLayout>
-
+        <!-- Số tiền đã dùng / giới hạn -->
         <TextView
-            android:id="@+id/tvCategoryRemaining"
-            android:layout_width="match_parent"
+            android:id="@+id/tvAmountSummary"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="3dp"
-            android:text="Còn lại: 0 ₫"
+            android:text="450.000 / 800.000 ₫"
+            android:textColor="@color/text_secondary"
+            android:textSize="13sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBaseline_toBaselineOf="@id/tvCategoryName" />
+
+        <!-- % đã dùng -->
+        <TextView
+            android:id="@+id/tvCategoryUsedPercent"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_marginTop="2dp"
+            android:text="Đã dùng 56%"
+            android:textColor="@color/text_hint"
+            android:textSize="12sp"
+            app:layout_constraintStart_toEndOf="@id/cardCategoryIcon"
+            app:layout_constraintTop_toBottomOf="@id/tvCategoryName"
+            app:layout_constraintEnd_toStartOf="@id/tvRemaining" />
+
+        <!-- Còn lại -->
+        <TextView
+            android:id="@+id/tvRemaining"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Còn 350.000 ₫"
             android:textColor="@color/status_income"
-            android:textSize="11sp" />
+            android:textSize="12sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBaseline_toBaselineOf="@id/tvCategoryUsedPercent" />
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
+        <!-- Progress bar -->
+        <ProgressBar
+            android:id="@+id/pbCategoryUsage"
+            style="@android:style/Widget.ProgressBar.Horizontal"
+            android:layout_width="0dp"
+            android:layout_height="6dp"
+            android:layout_marginTop="12dp"
+            android:max="100"
+            android:progress="56"
+            android:progressBackgroundTint="@color/divider"
+            android:progressTint="@color/status_income"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tvCategoryUsedPercent" />
 
-            <ProgressBar
-                android:id="@+id/pbCategoryUsage"
-                style="@android:style/Widget.ProgressBar.Horizontal"
-                android:layout_width="0dp"
-                android:layout_height="7dp"
-                android:layout_weight="1"
-                android:max="100"
-                android:progress="0"
-                android:progressBackgroundTint="@color/divider"
-                android:progressTint="@color/status_income" />
-
-            <TextView
-                android:id="@+id/tvCategoryUsagePercent"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="10dp"
-                android:text="0%"
-                android:textColor="@color/text_primary"
-                android:textSize="11sp"
-                android:textStyle="bold" />
-         </LinearLayout>
-     </LinearLayout>
-
- </com.google.android.material.card.MaterialCardView>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</com.google.android.material.card.MaterialCardView>

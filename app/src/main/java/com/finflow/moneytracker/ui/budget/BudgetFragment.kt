@@ -29,7 +29,6 @@ class BudgetFragment : Fragment() {
     }
 
     private lateinit var categoryAdapter: BudgetCategoryAdapter
-    private var latestState: BudgetUiState = BudgetUiState()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -55,8 +54,22 @@ class BudgetFragment : Fragment() {
     private fun setupRecyclerView() {
         categoryAdapter = BudgetCategoryAdapter()
         binding.rvBudgetCategories.apply {
-            layoutManager = LinearLayoutManager(requireContext())
+            layoutManager = LinearLayoutManager(requireContext()) // ← thêm dòng này
             adapter = categoryAdapter
+            isNestedScrollingEnabled = false
+        }
+    }
+
+    private fun setupActions() {
+        // Hành động bấm nút (+) để thêm Budget từ Category
+        binding.btnAddBudget.setOnClickListener {
+            // TODO: Mở BottomSheet lọc danh mục chưa có limit
+            // ví dụ: showCategorySelectionBottomSheet()
+        }
+
+        // Nếu bạn muốn người dùng bấm vào text tháng để chọn tháng khác (lối thoát phụ)
+        binding.cardBudgetSummary.findViewById<View>(R.id.tvCurrentMonth)?.setOnClickListener {
+            // TODO: Hiển thị Month Picker nếu thực sự cần
         }
     }
 
@@ -64,68 +77,41 @@ class BudgetFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.uiState.collect { state ->
-                    latestState = state
                     renderState(state)
                 }
             }
         }
     }
 
-    private fun setupActions() {
-        // Trong kiến trúc mới, ngân sách dựa trên hạn mức của từng category.
-        // Các nút chỉnh sửa ngân sách tổng sẽ được ẩn hoặc dẫn tới màn hình quản lý category.
-        binding.btnCreateManual.visibility = View.GONE
-        binding.btnEditBudget.visibility = View.GONE
-    }
-
     private fun renderState(state: BudgetUiState) {
-        binding.tvBudgetPeriod.text = "Kỳ ${state.periodLabel}"
-        binding.tvBudgetName.text = "Ngân sách tháng"
-        binding.tvBudgetWallet.text = "Tất cả ví"
-        binding.tvBudgetMode.text = "Dựa trên hạn mức nhóm"
-        
-        // Cập nhật các trường số tiền
+        binding.tvCurrentMonth.text = "Tháng ${state.periodLabel}"
         binding.tvTotalBudget.text = formatCurrency(state.plannedBudget)
-        binding.tvSpent.text = formatCurrency(state.spent)
-        binding.tvRemaining.text = formatCurrency(state.remaining)
-        binding.tvUsagePercent.text = "${state.usagePercent}%"
 
-        // Màu sắc thanh tiến độ
-        binding.pbBudgetUsage.progress = state.usagePercent.coerceAtMost(100)
-        binding.pbBudgetUsage.progressTintList = ColorStateList.valueOf(
-            when (state.progressState) {
-                BudgetProgressState.SAFE -> ContextCompat.getColor(requireContext(), R.color.status_income)
-                BudgetProgressState.WARNING -> ContextCompat.getColor(requireContext(), R.color.status_warning)
-                BudgetProgressState.DANGER -> ContextCompat.getColor(requireContext(), R.color.status_expense)
-            }
+        // Tính % còn lại
+        val remainingPercent = (100 - state.usagePercent).coerceAtLeast(0)
+        val remainingMoney = formatCurrency(state.remaining)
+
+        // Hiển thị: 1.400.000 ₫ (94%)
+        binding.tvRemaining.text = "$remainingMoney ($remainingPercent%)"
+
+        // Thanh tiến độ vẫn thể hiện mức ĐÃ TIÊU để người dùng thấy thanh đang chạy từ trái sang phải
+        binding.pbTotalUsage.progress = state.usagePercent.coerceAtMost(100)
+
+        // Đổi màu thanh dựa trên % ĐÃ TIÊU
+        binding.pbTotalUsage.progressTintList = ColorStateList.valueOf(
+            ContextCompat.getColor(requireContext(), when {
+                state.usagePercent >= 100 -> R.color.status_expense // Hết tiền (Đỏ)
+                state.usagePercent >= 80 -> R.color.status_warning  // Sắp hết (Vàng)
+                else -> R.color.status_income                       // An toàn (Xanh)
+            })
         )
 
-        // Hiển thị tin nhắn cảnh báo
-        if (state.alertMessage.isNullOrBlank()) {
-            binding.tvBudgetAlert.visibility = View.GONE
-        } else {
-            binding.tvBudgetAlert.visibility = View.VISIBLE
-            binding.tvBudgetAlert.text = state.alertMessage
-        }
-
-        // Hiển thị so sánh với tháng trước
-        if (state.comparisonMessage.isNullOrBlank()) {
-            binding.tvComparison.visibility = View.GONE
-        } else {
-            binding.tvComparison.visibility = View.VISIBLE
-            binding.tvComparison.text = state.comparisonMessage
-        }
-
-        // Trạng thái trống (nếu chưa có category nào đặt hạn mức)
-        binding.tvEmptyState.visibility = if (state.isEmpty) View.VISIBLE else View.GONE
-        binding.groupContent.visibility = if (state.isEmpty) View.GONE else View.VISIBLE
-
+        // Danh sách danh mục bên dưới
         categoryAdapter.submitList(state.categoryProgress)
     }
 
     private fun formatCurrency(value: Long): String {
-        val formatter = NumberFormat.getCurrencyInstance(Locale("vi", "VN"))
-        return formatter.format(value).replace("₫", "").trim() + " ₫"
+        return NumberFormat.getCurrencyInstance(Locale("vi", "VN")).format(value)
     }
 
     override fun onDestroyView() {

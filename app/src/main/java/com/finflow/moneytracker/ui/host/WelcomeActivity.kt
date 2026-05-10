@@ -2,7 +2,9 @@ package com.finflow.moneytracker.ui.host
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.View
 import android.widget.Button
+import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultLauncher
@@ -14,6 +16,7 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import com.finflow.moneytracker.R
 import com.finflow.moneytracker.data.sync.FirestoreSyncWorker
+import com.finflow.moneytracker.utils.UserPrefs
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
@@ -26,6 +29,7 @@ class WelcomeActivity : AppCompatActivity() {
     private lateinit var auth: FirebaseAuth
     private lateinit var googleSignInClient: GoogleSignInClient
     private lateinit var signInLauncher: ActivityResultLauncher<Intent>
+    private lateinit var progressBar: ProgressBar // Nên có để báo hiệu đang sync
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,12 +37,18 @@ class WelcomeActivity : AppCompatActivity() {
         setContentView(R.layout.activity_welcome)
 
         auth = FirebaseAuth.getInstance()
+        progressBar = findViewById(R.id.progress_loading) // Đảm bảo ID này có trong layout
 
-        // Kiểm tra nếu đã đăng nhập rồi (không phải ẩn danh) thì vào luôn MainActivity
+        // 1. Kiểm tra trạng thái đăng nhập tự động
         val currentUser = auth.currentUser
         if (currentUser != null) {
-            triggerInitialSync()
-            startMainActivity()
+            updateUserCache(currentUser)
+
+            // Hiện loading và đợi đồng bộ xong mới cho vào app
+            showLoading(true)
+            triggerInitialSync {
+                startMainActivity()
+            }
             return
         }
 
@@ -58,12 +68,15 @@ class WelcomeActivity : AppCompatActivity() {
         }
 
         btnGuest.setOnClickListener {
-            // Đăng nhập ẩn danh để bắt đầu dùng
+            showLoading(true)
             auth.signInAnonymously()
                 .addOnCompleteListener { task ->
                     if (task.isSuccessful) {
-                        startMainActivity()
+                        UserPrefs.saveUser(this, "Tài khoản khách", null, null)
+                        // Khách thường không có dữ liệu cloud cũ, nhưng vẫn sync để chắc chắn
+                        triggerInitialSync { startMainActivity() }
                     } else {
+                        showLoading(false)
                         Toast.makeText(this, "Lỗi: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
                     }
                 }
@@ -85,14 +98,15 @@ class WelcomeActivity : AppCompatActivity() {
                     val account = task.getResult(ApiException::class.java)!!
                     firebaseAuthWithGoogle(account.idToken!!)
                 } catch (e: ApiException) {
-                    Toast.makeText(this, "Lỗi đăng nhập Google: ${e.message}", Toast.LENGTH_SHORT).show()
+                    showLoading(false)
+                    Toast.makeText(this, "Lỗi Google: ${e.message}", Toast.LENGTH_SHORT).show()
                 }
             }
         }
     }
 
     private fun signInWithGoogle() {
-        // Logout để luôn hiện bảng chọn tài khoản
+        showLoading(true)
         googleSignInClient.signOut().addOnCompleteListener {
             signInLauncher.launch(googleSignInClient.signInIntent)
         }
@@ -103,18 +117,59 @@ class WelcomeActivity : AppCompatActivity() {
         auth.signInWithCredential(credential)
             .addOnCompleteListener(this) { task ->
                 if (task.isSuccessful) {
-                    Toast.makeText(this, "Đăng nhập thành công!", Toast.LENGTH_SHORT).show()
-                    triggerInitialSync()
-                    startMainActivity()
+                    val user = auth.currentUser
+                    updateUserCache(user)
+
+                    Toast.makeText(this, "Đang đồng bộ dữ liệu...", Toast.LENGTH_SHORT).show()
+                    triggerInitialSync {
+                        startMainActivity()
+                    }
                 } else {
+                    showLoading(false)
                     Toast.makeText(this, "Lỗi xác thực: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
                 }
             }
     }
 
-    private fun triggerInitialSync() {
+    /**
+     * Đồng bộ dữ liệu Firestore và đợi kết quả
+     */
+    private fun triggerInitialSync(onComplete: () -> Unit) {
         val syncRequest = OneTimeWorkRequestBuilder<FirestoreSyncWorker>().build()
-        WorkManager.getInstance(this).enqueue(syncRequest)
+        val workManager = WorkManager.getInstance(this)
+
+        workManager.enqueue(syncRequest)
+
+        // Quan sát trạng thái Worker thông qua LiveData
+        workManager.getWorkInfoByIdLiveData(syncRequest.id).observe(this) { workInfo ->
+            if (workInfo != null && workInfo.state.isFinished) {
+                onComplete()
+            }
+        }
+    }
+
+    /**
+     * Cập nhật thông tin vào SharedPreferences để các màn hình sau dùng ngay
+     */
+    private fun updateUserCache(user: com.google.firebase.auth.FirebaseUser?) {
+        if (user == null) return
+        if (user.isAnonymous) {
+            UserPrefs.saveUser(this, "Tài khoản khách", null, null)
+        } else {
+            UserPrefs.saveUser(
+                this,
+                user.displayName,
+                user.email,
+                user.photoUrl?.toString()
+            )
+        }
+    }
+
+    private fun showLoading(isLoading: Boolean) {
+        progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
+        // Vô hiệu hóa nút để tránh bấm nhiều lần
+        findViewById<Button>(R.id.btn_login).isEnabled = !isLoading
+        findViewById<Button>(R.id.btn_guest).isEnabled = !isLoading
     }
 
     private fun startMainActivity() {
