@@ -3,12 +3,12 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FFFFFF">
+    android:background="@color/app_background">
 
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#FFFFFF"
+        android:background="@color/app_background"
         app:elevation="0dp">
 
         <LinearLayout
@@ -24,24 +24,27 @@
                 android:text="Lịch sử giao dịch"
                 android:textSize="20sp"
                 android:textStyle="bold"
-                android:textColor="#212121"
-                android:layout_marginBottom="16dp"/>
+                android:textColor="@color/text_primary"
+                android:layout_marginBottom="16dp" />
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="45dp"
                 android:orientation="horizontal"
                 android:gravity="center_vertical">
 
                 <EditText
                     android:id="@+id/edtSearch"
                     android:layout_width="0dp"
-                    android:layout_height="45dp"
+                    android:layout_height="match_parent"
                     android:layout_weight="1"
                     android:background="@drawable/bg_search_bar"
                     android:hint="Tìm kiếm ghi chú..."
                     android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
                     android:textSize="14sp"
+                    android:textColor="@color/text_primary"
+                    android:textColorHint="@color/text_hint"
                     android:drawableStart="@drawable/ic_search"
                     android:drawablePadding="8dp" />
 
@@ -52,46 +55,19 @@
                     android:layout_marginStart="8dp"
                     android:background="@drawable/bg_filter_button"
                     android:src="@drawable/ic_filter"
-                    app:tint="#424242" />
+                    android:contentDescription="Lọc giao dịch"
+                    app:tint="@color/text_secondary" />
             </LinearLayout>
 
-            <com.google.android.material.chip.ChipGroup
-                android:id="@+id/chipGroupTimeScale"
-                android:layout_width="match_parent"
+            <TextView
+                android:id="@+id/tvCurrentFilter"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                app:singleSelection="true"
-                app:selectionRequired="true">
+                android:layout_marginTop="10dp"
+                android:text="Tháng này"
+                android:textSize="13sp"
+                android:textColor="@color/text_secondary" />
 
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/chipDaily"
-                    style="@style/Widget.MaterialComponents.Chip.Choice"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Ngày" />
-
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/chipWeekly"
-                    style="@style/Widget.MaterialComponents.Chip.Choice"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Tuần" />
-
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/chipMonthly"
-                    style="@style/Widget.MaterialComponents.Chip.Choice"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:checked="true"
-                    android:text="Tháng" />
-
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/chipYearly"
-                    style="@style/Widget.MaterialComponents.Chip.Choice"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Năm" />
-            </com.google.android.material.chip.ChipGroup>
         </LinearLayout>
     </com.google.android.material.appbar.AppBarLayout>
 
@@ -101,6 +77,8 @@
         android:layout_height="match_parent"
         android:clipToPadding="false"
         android:paddingTop="8dp"
+        android:paddingBottom="12dp"
+        android:background="@color/app_background"
         app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

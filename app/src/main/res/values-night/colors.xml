@@ -1,5 +1,48 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Màu xám cho divider khi không được chọn ở giao diện Tối -->
-    <color name="divider_inactive">#444444</color>
+    <!-- Legacy aliases -->
+    <color name="bg_white">#FF0A0A0A</color>
+    <color name="bg_button">#FFBB86FC</color>
+    <color name="divider">#FF303030</color>
+    <color name="dark_grey">#FF121212</color>
+    <color name="divider_inactive">#FF333333</color>
+    
+    <!-- Base -->
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+
+    <!-- App Background -->
+    <color name="app_background">#FF0A0A0A</color>
+    <color name="app_surface">#FF121212</color>
+    <color name="app_surface_variant">#FF1E1E1E</color>
+    <color name="app_divider">#FF303030</color>
+
+    <!-- Text -->
+    <color name="text_primary">#FFFFFFFF</color>
+    <color name="text_secondary">#FFB0B0B0</color>
+    <color name="text_hint">#FF757575</color>
+    <color name="text_button">#FFFFFFFF</color>
+
+    <!-- Brand -->
+    <color name="primary">#FFBB86FC</color>
+    <color name="primary_dark">#FF3700B3</color>
+
+    <!-- Status -->
+    <color name="status_income">#FF4CAF50</color>
+    <color name="status_warning">#FFFBC02D</color>
+    <color name="status_expense">#FFF44336</color>
+
+    <!-- Common -->
+    <color name="green">#FF4CAF50</color>
+    <color name="red">#FFF44336</color>
+    <color name="blue">#FF2196F3</color>
+    <color name="icon_bg_default">#1A8B8B8B</color>
+
+    <!-- Transaction payment method chip -->
+    <color name="chip_payment_cash_bg">#FF12351C</color>
+    <color name="chip_payment_cash_text">#FF81C784</color>
+    <color name="chip_payment_bank_bg">#FF10284D</color>
+    <color name="chip_payment_bank_text">#FF90CAF9</color>
+    <color name="chip_payment_other_bg">#FF2A2A2A</color>
+    <color name="chip_payment_other_text">#FFB0B0B0</color>
 </resources>

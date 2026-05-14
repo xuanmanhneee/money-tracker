@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="10dp"
-    app:cardBackgroundColor="@color/dark_grey"
+    app:cardBackgroundColor="@color/app_surface"
     app:cardCornerRadius="16dp"
     app:cardElevation="0dp"
-    app:strokeColor="@color/divider"
+    app:strokeColor="@color/app_divider"
     app:strokeWidth="1dp">
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -15,7 +16,6 @@
         android:layout_height="wrap_content"
         android:padding="16dp">
 
-        <!-- Icon box -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardCategoryIcon"
             android:layout_width="40dp"
@@ -36,7 +36,6 @@
                 android:src="@drawable/ic_category_default" />
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Tên danh mục -->
         <TextView
             android:id="@+id/tvCategoryName"
             android:layout_width="0dp"
@@ -50,7 +49,6 @@
             app:layout_constraintTop_toTopOf="@id/cardCategoryIcon"
             app:layout_constraintEnd_toStartOf="@id/tvAmountSummary" />
 
-        <!-- Số tiền đã dùng / giới hạn -->
         <TextView
             android:id="@+id/tvAmountSummary"
             android:layout_width="wrap_content"
@@ -61,7 +59,6 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintBaseline_toBaselineOf="@id/tvCategoryName" />
 
-        <!-- % đã dùng -->
         <TextView
             android:id="@+id/tvCategoryUsedPercent"
             android:layout_width="0dp"
@@ -75,7 +72,6 @@
             app:layout_constraintTop_toBottomOf="@id/tvCategoryName"
             app:layout_constraintEnd_toStartOf="@id/tvRemaining" />
 
-        <!-- Còn lại -->
         <TextView
             android:id="@+id/tvRemaining"
             android:layout_width="wrap_content"
@@ -87,7 +83,6 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintBaseline_toBaselineOf="@id/tvCategoryUsedPercent" />
 
-        <!-- Progress bar -->
         <ProgressBar
             android:id="@+id/pbCategoryUsage"
             style="@android:style/Widget.ProgressBar.Horizontal"
@@ -96,7 +91,7 @@
             android:layout_marginTop="12dp"
             android:max="100"
             android:progress="56"
-            android:progressBackgroundTint="@color/divider"
+            android:progressBackgroundTint="@color/app_divider"
             android:progressTint="@color/status_income"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
@@ -104,4 +99,5 @@
             app:layout_constraintTop_toBottomOf="@id/tvCategoryUsedPercent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
+
 </com.google.android.material.card.MaterialCardView>

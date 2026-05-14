@@ -3,6 +3,7 @@ package com.finflow.moneytracker.ui.host
 import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.lifecycle.Observer
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
@@ -16,6 +17,13 @@ class LoadingActivity : AppCompatActivity() {
     private lateinit var binding: ActivityLoadingBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        val sharedPref = getSharedPreferences("settings", MODE_PRIVATE)
+        val savedMode = sharedPref.getInt(
+            "theme_mode",
+            AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
+        )
+        AppCompatDelegate.setDefaultNightMode(savedMode)
+
         super.onCreate(savedInstanceState)
         binding = ActivityLoadingBinding.inflate(layoutInflater)
         setContentView(binding.root)

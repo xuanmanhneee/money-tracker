@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -52,25 +53,52 @@ class BudgetFragment : Fragment() {
     }
 
     private fun setupRecyclerView() {
-        categoryAdapter = BudgetCategoryAdapter()
+        categoryAdapter = BudgetCategoryAdapter(
+            onItemClick = { item ->
+                openEditBudgetSheet(item)
+            }
+        )
+
         binding.rvBudgetCategories.apply {
-            layoutManager = LinearLayoutManager(requireContext()) // ← thêm dòng này
+            layoutManager = LinearLayoutManager(requireContext())
             adapter = categoryAdapter
             isNestedScrollingEnabled = false
         }
     }
 
     private fun setupActions() {
-        // Hành động bấm nút (+) để thêm Budget từ Category
         binding.btnAddBudget.setOnClickListener {
-            // TODO: Mở BottomSheet lọc danh mục chưa có limit
-            // ví dụ: showCategorySelectionBottomSheet()
+            openCreateBudgetSheet()
         }
+    }
 
-        // Nếu bạn muốn người dùng bấm vào text tháng để chọn tháng khác (lối thoát phụ)
-        binding.cardBudgetSummary.findViewById<View>(R.id.tvCurrentMonth)?.setOnClickListener {
-            // TODO: Hiển thị Month Picker nếu thực sự cần
-        }
+    private fun openCreateBudgetSheet() {
+        BudgetEditorBottomSheet
+            .newCreateInstance(
+                availableCategoriesProvider = {
+                    viewModel.getAvailableCategories()
+                },
+                onSave = { categoryId: Long, limitAmount: Long ->
+                    viewModel.setCategoryBudgetLimit(categoryId, limitAmount)
+                }
+            )
+            .show(parentFragmentManager, "BudgetEditorBottomSheet")
+    }
+
+    private fun openEditBudgetSheet(item: BudgetCategoryProgressUi) {
+        BudgetEditorBottomSheet
+            .newEditInstance(
+                categoryId = item.categoryId,
+                categoryName = item.categoryName,
+                initialLimitAmount = item.allocated,
+                onSave = { categoryId: Long, limitAmount: Long ->
+                    viewModel.setCategoryBudgetLimit(categoryId, limitAmount)
+                },
+                onDelete = { categoryId: Long ->
+                    viewModel.removeCategoryBudgetLimit(categoryId)
+                }
+            )
+            .show(parentFragmentManager, "BudgetEditorBottomSheet")
     }
 
     private fun observeUiState() {
@@ -87,31 +115,45 @@ class BudgetFragment : Fragment() {
         binding.tvCurrentMonth.text = "Tháng ${state.periodLabel}"
         binding.tvTotalBudget.text = formatCurrency(state.plannedBudget)
 
-        // Tính % còn lại
         val remainingPercent = (100 - state.usagePercent).coerceAtLeast(0)
-        val remainingMoney = formatCurrency(state.remaining)
 
-        // Hiển thị: 1.400.000 ₫ (94%)
-        binding.tvRemaining.text = "$remainingMoney ($remainingPercent%)"
+        binding.tvRemaining.text = if (state.remaining >= 0L) {
+            "${formatCurrency(state.remaining)} ($remainingPercent%)"
+        } else {
+            "Lố ${formatCurrency(-state.remaining)}"
+        }
 
-        // Thanh tiến độ vẫn thể hiện mức ĐÃ TIÊU để người dùng thấy thanh đang chạy từ trái sang phải
-        binding.pbTotalUsage.progress = state.usagePercent.coerceAtMost(100)
-
-        // Đổi màu thanh dựa trên % ĐÃ TIÊU
-        binding.pbTotalUsage.progressTintList = ColorStateList.valueOf(
-            ContextCompat.getColor(requireContext(), when {
-                state.usagePercent >= 100 -> R.color.status_expense // Hết tiền (Đỏ)
-                state.usagePercent >= 80 -> R.color.status_warning  // Sắp hết (Vàng)
-                else -> R.color.status_income                       // An toàn (Xanh)
-            })
+        binding.tvRemaining.setTextColor(
+            ContextCompat.getColor(
+                requireContext(),
+                when {
+                    state.remaining < 0L -> R.color.status_expense
+                    state.usagePercent >= 80 -> R.color.status_warning
+                    else -> R.color.status_income
+                }
+            )
         )
 
-        // Danh sách danh mục bên dưới
+        binding.pbTotalUsage.progress = state.usagePercent.coerceAtMost(100)
+
+        binding.pbTotalUsage.progressTintList = ColorStateList.valueOf(
+            ContextCompat.getColor(
+                requireContext(),
+                when {
+                    state.usagePercent >= 100 -> R.color.status_expense
+                    state.usagePercent >= 80 -> R.color.status_warning
+                    else -> R.color.status_income
+                }
+            )
+        )
+
         categoryAdapter.submitList(state.categoryProgress)
     }
 
     private fun formatCurrency(value: Long): String {
-        return NumberFormat.getCurrencyInstance(Locale("vi", "VN")).format(value)
+        return NumberFormat
+            .getCurrencyInstance(Locale("vi", "VN"))
+            .format(value)
     }
 
     override fun onDestroyView() {

@@ -15,12 +15,21 @@ interface CategoryDao {
     @Update
     suspend fun update(category: Category)
 
-    @Delete
-    suspend fun delete(category: Category)
-
     @Query("SELECT * FROM categories WHERE is_deleted = 0")
     fun getAll(): Flow<List<Category>>
 
     @Query("SELECT * FROM categories WHERE type = :type AND is_deleted = 0")
     fun getByType(type: Int): Flow<List<Category>>
+
+    @Query("""
+        UPDATE categories
+        SET monthly_budget_limit = :limit,
+            updated_at = :updatedAt
+        WHERE id = :categoryId
+    """)
+    suspend fun updateMonthlyBudgetLimit(
+        categoryId: Long,
+        limit: Long?,
+        updatedAt: Long = System.currentTimeMillis()
+    )
 }

@@ -2,6 +2,7 @@ package com.finflow.moneytracker.ui.budget
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.finflow.moneytracker.data.local.entity.Category
 import com.finflow.moneytracker.data.local.model.CategoryType
 import com.finflow.moneytracker.data.repository.CategoryRepository
 import com.finflow.moneytracker.data.repository.TransactionRepository
@@ -15,8 +16,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
-
-// --- UI Models ---
+import kotlinx.coroutines.launch
 
 enum class BudgetProgressState {
     SAFE,
@@ -25,7 +25,7 @@ enum class BudgetProgressState {
 }
 
 data class BudgetCategoryProgressUi(
-    val categoryId: String,
+    val categoryId: Long,
     val categoryName: String,
     val iconEmoji: String?,
     val allocated: Long,
@@ -42,21 +42,23 @@ data class BudgetUiState(
     val plannedBudget: Long = 0L,
     val spent: Long = 0L,
     val remaining: Long = 0L,
+    val savingAmount: Long = 0L,
+    val overspentAmount: Long = 0L,
     val usagePercent: Int = 0,
     val progressState: BudgetProgressState = BudgetProgressState.SAFE,
     val alertMessage: String? = null,
     val categoryProgress: List<BudgetCategoryProgressUi> = emptyList()
 )
 
-// --- ViewModel ---
-
 class BudgetViewModel(
     walletRepository: WalletRepository,
-    categoryRepository: CategoryRepository,
+    private val categoryRepository: CategoryRepository,
     private val transactionRepository: TransactionRepository
 ) : ViewModel() {
 
     private val currentDateFlow = MutableStateFlow(System.currentTimeMillis())
+
+    private var latestCategories: List<Category> = emptyList()
 
     val uiState: StateFlow<BudgetUiState> = combine(
         currentDateFlow,
@@ -65,51 +67,58 @@ class BudgetViewModel(
         transactionRepository.getAllTransactionsStream()
     ) { date, _, categories, transactions ->
 
+        latestCategories = categories
+
         val (periodStart, periodEnd) = getMonthRange(date)
 
-        // Lọc các danh mục chi tiêu hợp lệ
-        val expenseCategories = categories.filter {
-            it.type == CategoryType.EXPENSE && !it.isDeleted
+        val expenseCategories = categories.filter { category ->
+            category.type == CategoryType.EXPENSE && !category.isDeleted
         }
-        val expenseCategoryIds = expenseCategories.map { it.id }.toSet()
 
-        // Lọc giao dịch trong tháng của các danh mục chi tiêu
+        val limitedCategories = expenseCategories.filter { category ->
+            category.monthlyBudgetLimit != null
+        }
+
+        val expenseCategoryIds = expenseCategories
+            .map { it.id }
+            .toSet()
+
         val currentMonthTransactions = transactions.filter { tx ->
             !tx.isDeleted &&
                     tx.date in periodStart..periodEnd &&
                     tx.categoryId in expenseCategoryIds &&
-                    tx.toWalletId == null // Đảm bảo không phải giao dịch chuyển khoản
+                    tx.toWalletId == null
         }
 
-        // Tính tổng hạn mức (planned) và tổng đã chi (spent)
-        val totalPlanned = expenseCategories.sumOf { it.monthlyBudgetLimit ?: 0L }
-        val totalSpent = currentMonthTransactions.sumOf { abs(it.amount) }
-
-        // Tính chi tiêu theo từng Category ID
         val spentByCategory = currentMonthTransactions
             .groupBy { it.categoryId }
-            .mapValues { (_, txs) -> txs.sumOf { abs(it.amount) } }
+            .mapValues { (_, txs) ->
+                txs.sumOf { abs(it.amount) }
+            }
 
-        // Mapping danh sách tiến độ từng hạng mục (Hiển thị tất cả, không filter hạn mức > 0)
-        val categoryProgress = expenseCategories.map { category ->
-            val allocated = category.monthlyBudgetLimit ?: 0L
-            val spent = spentByCategory[category.id] ?: 0L
-            val usage = percentage(spent, allocated)
+        val categoryProgress = limitedCategories
+            .map { category ->
+                val allocated = category.monthlyBudgetLimit ?: 0L
+                val spent = spentByCategory[category.id] ?: 0L
+                val rawRemaining = allocated - spent
+                val usage = percentage(spent, allocated)
 
-            BudgetCategoryProgressUi(
-                categoryId = category.id.toString(),
-                categoryName = category.name,
-                iconEmoji = category.icon,   // ← thêm dòng này, tên field tùy entity của bạn
-                allocated = allocated,
-                spent = spent,
-                remaining = (allocated - spent).coerceAtLeast(0L),
-                usagePercent = usage,
-                progressState = mapUsageToState(usage)
-            )
-        }.sortedByDescending { it.spent } // Ưu tiên hiện mục tiêu nhiều tiền lên đầu
+                BudgetCategoryProgressUi(
+                    categoryId = category.id,
+                    categoryName = category.name,
+                    iconEmoji = category.icon,
+                    allocated = allocated,
+                    spent = spent,
+                    remaining = rawRemaining,
+                    usagePercent = usage,
+                    progressState = mapUsageToState(usage)
+                )
+            }
+            .sortedByDescending { it.spent }
 
-        // Tính toán các thông số tổng quát
-        val totalRemaining = (totalPlanned - totalSpent).coerceAtLeast(0L)
+        val totalPlanned = categoryProgress.sumOf { it.allocated }
+        val totalSpent = categoryProgress.sumOf { it.spent }
+        val rawRemaining = totalPlanned - totalSpent
         val totalUsagePercent = percentage(totalSpent, totalPlanned)
 
         BudgetUiState(
@@ -118,10 +127,12 @@ class BudgetViewModel(
             periodLabel = formatPeriodLabel(date),
             plannedBudget = totalPlanned,
             spent = totalSpent,
-            remaining = totalRemaining,
+            remaining = rawRemaining,
+            savingAmount = rawRemaining.coerceAtLeast(0L),
+            overspentAmount = (-rawRemaining).coerceAtLeast(0L),
             usagePercent = totalUsagePercent,
             progressState = mapUsageToState(totalUsagePercent),
-            alertMessage = buildAlertMessage(totalUsagePercent),
+            alertMessage = buildAlertMessage(rawRemaining, totalUsagePercent),
             categoryProgress = categoryProgress
         )
     }.stateIn(
@@ -134,7 +145,33 @@ class BudgetViewModel(
         currentDateFlow.value = System.currentTimeMillis()
     }
 
-    // --- Helper Functions ---
+    fun getAvailableCategories(): List<Category> {
+        return latestCategories.filter { category ->
+            category.type == CategoryType.EXPENSE &&
+                    category.monthlyBudgetLimit == null &&
+                    !category.isDeleted
+        }
+    }
+
+    fun setCategoryBudgetLimit(categoryId: Long, limitAmount: Long) {
+        if (limitAmount <= 0L) return
+
+        viewModelScope.launch {
+            categoryRepository.updateMonthlyBudgetLimit(
+                categoryId = categoryId,
+                limit = limitAmount
+            )
+        }
+    }
+
+    fun removeCategoryBudgetLimit(categoryId: Long) {
+        viewModelScope.launch {
+            categoryRepository.updateMonthlyBudgetLimit(
+                categoryId = categoryId,
+                limit = null
+            )
+        }
+    }
 
     private fun getMonthRange(timestamp: Long): Pair<Long, Long> {
         val calendar = Calendar.getInstance().apply {
@@ -145,9 +182,12 @@ class BudgetViewModel(
             set(Calendar.SECOND, 0)
             set(Calendar.MILLISECOND, 0)
         }
+
         val start = calendar.timeInMillis
+
         calendar.add(Calendar.MONTH, 1)
         calendar.add(Calendar.MILLISECOND, -1)
+
         return start to calendar.timeInMillis
     }
 
@@ -164,11 +204,14 @@ class BudgetViewModel(
         }
     }
 
-    private fun buildAlertMessage(usagePercent: Int): String? {
+    private fun buildAlertMessage(
+        remaining: Long,
+        usagePercent: Int
+    ): String? {
         return when {
-            usagePercent >= 100 -> "Đã vượt ngân sách tháng"
+            remaining < 0L -> "Đã dùng lố ${abs(remaining)} so với mức đã đặt"
             usagePercent >= 80 -> "Cảnh báo: Chi tiêu sắp chạm hạn mức"
-            else -> null
+            else -> "Đang tiết kiệm được $remaining so với mức đã đặt"
         }
     }
 

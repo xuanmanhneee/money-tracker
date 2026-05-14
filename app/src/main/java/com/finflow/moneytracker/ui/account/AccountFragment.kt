@@ -7,6 +7,7 @@ import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.work.Constraints
@@ -29,6 +30,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+
 class AccountFragment : Fragment(R.layout.fragment_account) {
 
     private lateinit var auth: FirebaseAuth
@@ -44,10 +46,14 @@ class AccountFragment : Fragment(R.layout.fragment_account) {
         val ivAvatar = view.findViewById<ImageView>(R.id.iv_avatar_main)
         val tvUserName = view.findViewById<TextView>(R.id.tv_display_name)
         val btnGoogleAction = view.findViewById<MaterialButton>(R.id.btn_google_signin)
-        val layoutAccountInfo = view.findViewById<View>(R.id.layout_account_info)
+        val layoutAccountInfo = view.findViewById<View>(R.id.layout_profile)
         val tvUserEmail = view.findViewById<TextView>(R.id.tv_display_email)
         val tvUserUid = view.findViewById<TextView>(R.id.tv_user_uid)
         val itemLogout = view.findViewById<View>(R.id.item_logout_action)
+
+        val itemAbout = view.findViewById<View>(R.id.item_about)
+        val itemWallets = view.findViewById<View>(R.id.item_wallet)
+        val itemCategories = view.findViewById<View>(R.id.item_groups)
 
         // 2. Hàm cập nhật giao diện (Ưu tiên Cache -> Cập nhật Firebase)
         fun refreshUI() {
@@ -111,6 +117,20 @@ class AccountFragment : Fragment(R.layout.fragment_account) {
         }
 
         refreshUI()
+
+        setupThemeModeSetting(view)
+
+        itemAbout?.setOnClickListener {
+            startActivity(Intent(requireContext(), AboutActivity::class.java))
+        }
+
+        itemWallets?.setOnClickListener {
+            startActivity(Intent(requireContext(), WalletsActivity::class.java))
+        }
+
+        itemCategories?.setOnClickListener {
+            startActivity(Intent(requireContext(), CategoriesActivity::class.java))
+        }
 
         // 3. Xử lý Click Events
         btnGoogleAction?.setOnClickListener { signInWithGoogle() }
@@ -201,6 +221,62 @@ class AccountFragment : Fragment(R.layout.fragment_account) {
             val intent = Intent(requireContext(), WelcomeActivity::class.java)
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             startActivity(intent)
+        }
+    }
+
+    private fun setupThemeModeSetting(view: View) {
+        val itemThemeMode = view.findViewById<View>(R.id.item_theme_mode)
+        val tvThemeModeValue = view.findViewById<TextView>(R.id.tv_theme_mode_value)
+
+        val sharedPref = requireContext()
+            .getSharedPreferences("settings", Context.MODE_PRIVATE)
+
+        fun modeText(mode: Int): String {
+            return when (mode) {
+                AppCompatDelegate.MODE_NIGHT_NO -> "Sáng"
+                AppCompatDelegate.MODE_NIGHT_YES -> "Tối"
+                else -> "Theo hệ thống"
+            }
+        }
+
+        val currentMode = sharedPref.getInt(
+            "theme_mode",
+            AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
+        )
+
+        tvThemeModeValue.text = modeText(currentMode)
+
+        itemThemeMode.setOnClickListener {
+            val options = arrayOf("Sáng", "Tối", "Theo hệ thống")
+
+            val checkedIndex = when (
+                sharedPref.getInt("theme_mode", AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+            ) {
+                AppCompatDelegate.MODE_NIGHT_NO -> 0
+                AppCompatDelegate.MODE_NIGHT_YES -> 1
+                else -> 2
+            }
+
+            MaterialAlertDialogBuilder(requireContext())
+                .setTitle("Chọn giao diện")
+                .setSingleChoiceItems(options, checkedIndex) { dialog, which ->
+                    val selectedMode = when (which) {
+                        0 -> AppCompatDelegate.MODE_NIGHT_NO
+                        1 -> AppCompatDelegate.MODE_NIGHT_YES
+                        else -> AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
+                    }
+
+                    sharedPref.edit()
+                        .putInt("theme_mode", selectedMode)
+                        .apply()
+
+                    tvThemeModeValue.text = modeText(selectedMode)
+
+                    AppCompatDelegate.setDefaultNightMode(selectedMode)
+
+                    dialog.dismiss()
+                }
+                .show()
         }
     }
 }

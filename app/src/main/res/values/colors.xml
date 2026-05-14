@@ -1,38 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Legacy aliases -->
+    <color name="bg_white">#FFFFFFFF</color>
+    <color name="bg_button">#FF6200EE</color>
+    <color name="divider">#FFE0E0E0</color>
+    <color name="dark_grey">#FF121212</color>
+    <color name="divider_inactive">#FF333333</color>
+
+    <!-- Base -->
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <!-- App Background -->
+    <color name="app_background">#FFFFFFFF</color>
+    <color name="app_surface">#FFF7F7F7</color>
+    <color name="app_surface_variant">#FFEFEFEF</color>
+    <color name="app_divider">#FFE0E0E0</color>
+
+    <!-- Text -->
+    <color name="text_primary">#FF111111</color>
+    <color name="text_secondary">#FF666666</color>
+    <color name="text_hint">#FF999999</color>
+    <color name="text_button">#FFFFFFFF</color>
+
+    <!-- Brand -->
+    <color name="primary">#FF6200EE</color>
+    <color name="primary_dark">#FF3700B3</color>
+
+    <!-- Status -->
+    <color name="status_income">#FF4CAF50</color>
+    <color name="status_warning">#FFFBC02D</color>
+    <color name="status_expense">#FFF44336</color>
+
+    <!-- Common -->
+    <color name="green">#FF4CAF50</color>
+    <color name="red">#FFF44336</color>
+    <color name="blue">#FF2196F3</color>
     <color name="icon_bg_default">#1A8B8B8B</color>
-
-    <color name="placeholder_overview">#BBDEFB</color>
-    <color name="placeholder_transactions">#C8E6C9</color>
-    <color name="placeholder_add">#FFF9C4</color>
-    <color name="placeholder_budget">#FFE0B2</color>
-    <color name="placeholder_account">#E1BEE7</color>
-    <color name="grey">#1E1E1E</color>
-    <color name="dark_grey">#121212</color>
-    <color name="green">#4CAF50</color>
-    <color name="red">#F44336</color>
-    <color name="blue">#2196F3</color>
-    <color name="divider_inactive">#333333</color>
-
-    <!-- Background -->
-    <color name="bg_white">#0A0A0A</color>
-    <color name="divider">#303030</color>
-
-    <!-- Text Colors -->
-    <color name="text_primary">#FFFFFF</color>
-    <color name="text_secondary">#B0B0B0</color>
-    <color name="text_hint">#757575</color>
-    <color name="text_button">#FFFFFF</color>
-
-    <!-- Button Colors -->
-    <color name="bg_button">#6200EE</color>
-
-    <!-- Status Colors -->
-    <color name="status_income">#4CAF50</color>
-    <color name="status_warning">#FBC02D</color>
-    <color name="status_expense">#F44336</color>
 
     <!-- Transaction payment method chip -->
     <color name="chip_payment_cash_bg">#FFE9F6EC</color>
@@ -41,5 +45,4 @@
     <color name="chip_payment_bank_text">#FF1E4FBF</color>
     <color name="chip_payment_other_bg">#FFF1F3F5</color>
     <color name="chip_payment_other_text">#FF5F6368</color>
-
 </resources>

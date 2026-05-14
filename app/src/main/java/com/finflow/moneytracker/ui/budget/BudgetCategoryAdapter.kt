@@ -12,83 +12,89 @@ import com.finflow.moneytracker.databinding.ItemBudgetCategoryBinding
 import java.text.NumberFormat
 import java.util.Locale
 
-class BudgetCategoryAdapter :
-    ListAdapter<BudgetCategoryProgressUi, BudgetCategoryAdapter.BudgetCategoryViewHolder>(DiffCallback) {
+class BudgetCategoryAdapter(
+    private val onItemClick: (BudgetCategoryProgressUi) -> Unit = {}
+) : ListAdapter<BudgetCategoryProgressUi, BudgetCategoryAdapter.BudgetCategoryViewHolder>(
+    DiffCallback
+) {
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BudgetCategoryViewHolder {
-        return BudgetCategoryViewHolder(
-            ItemBudgetCategoryBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+    override fun onCreateViewHolder(
+        parent: ViewGroup,
+        viewType: Int
+    ): BudgetCategoryViewHolder {
+        val binding = ItemBudgetCategoryBinding.inflate(
+            LayoutInflater.from(parent.context),
+            parent,
+            false
         )
+        return BudgetCategoryViewHolder(binding)
     }
 
-    override fun onBindViewHolder(holder: BudgetCategoryViewHolder, position: Int) {
-        holder.bind(getItem(position))
+    override fun onBindViewHolder(
+        holder: BudgetCategoryViewHolder,
+        position: Int
+    ) {
+        holder.bind(getItem(position), onItemClick)
     }
 
-    class BudgetCategoryViewHolder(private val binding: ItemBudgetCategoryBinding) :
-        RecyclerView.ViewHolder(binding.root) {
+    class BudgetCategoryViewHolder(
+        private val binding: ItemBudgetCategoryBinding
+    ) : RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(item: BudgetCategoryProgressUi) {
-            val ctx = binding.root.context
-
-            val resId = item.iconEmoji
-                ?.takeIf { it.isNotBlank() }
-                ?.let { ctx.resources.getIdentifier(it, "drawable", ctx.packageName) }
-                ?.takeIf { it != 0 }
-                ?: R.drawable.ic_category_default
-
-            binding.ivCategoryIcon.setImageResource(resId)
-
-            // Tên danh mục
-            binding.tvCategoryName.text = item.categoryName
-
-            // Hàng số tiền: "450.000 / 800.000 ₫"
-            binding.tvAmountSummary.text =
-                "${formatCurrency(item.spent)} / ${formatCurrency(item.allocated)} ₫"
-
-            // Hàng phần trăm: "Đã dùng 56%"
-            binding.tvCategoryUsedPercent.text = "Đã dùng ${item.usagePercent}%"
-
-            // Màu và text "Còn lại" / "Vượt"
-            val (progressColor, remainingText) = when (item.progressState) {
-                BudgetProgressState.SAFE -> Pair(
-                    R.color.status_income,
-                    "Còn ${formatCurrency(item.remaining)} ₫"
-                )
-                BudgetProgressState.WARNING -> Pair(
-                    R.color.status_warning,
-                    "Còn ${formatCurrency(item.remaining)} ₫"
-                )
-                BudgetProgressState.DANGER -> Pair(
-                    R.color.status_expense,
-                    "Vượt ${formatCurrency(item.spent - item.allocated)} ₫"
-                )
+        fun bind(
+            item: BudgetCategoryProgressUi,
+            onItemClick: (BudgetCategoryProgressUi) -> Unit
+        ) {
+            binding.root.setOnClickListener {
+                onItemClick(item)
             }
 
-            val resolvedColor = ContextCompat.getColor(ctx, progressColor)
+            binding.tvCategoryName.text = item.categoryName
+            binding.tvAmountSummary.text =
+                "${formatCurrency(item.spent)} / ${formatCurrency(item.allocated)}"
 
-            binding.tvRemaining.text = remainingText
-            binding.tvRemaining.setTextColor(resolvedColor)
-            binding.pbCategoryUsage.progressTintList = ColorStateList.valueOf(resolvedColor)
+            binding.tvRemaining.text = if (item.remaining >= 0L) {
+                "Còn ${formatCurrency(item.remaining)}"
+            } else {
+                "Lố ${formatCurrency(-item.remaining)}"
+            }
+
             binding.pbCategoryUsage.progress = item.usagePercent.coerceAtMost(100)
 
-            // Stroke card đỏ khi DANGER
-            binding.root.strokeColor = if (item.progressState == BudgetProgressState.DANGER) {
-                ContextCompat.getColor(ctx, R.color.status_expense)
-            } else {
-                ContextCompat.getColor(ctx, R.color.divider)
+            val colorRes = when (item.progressState) {
+                BudgetProgressState.SAFE -> R.color.status_income
+                BudgetProgressState.WARNING -> R.color.status_warning
+                BudgetProgressState.DANGER -> R.color.status_expense
             }
+
+            val color = ContextCompat.getColor(binding.root.context, colorRes)
+
+            binding.pbCategoryUsage.progressTintList = ColorStateList.valueOf(color)
+            binding.tvRemaining.setTextColor(color)
         }
 
         private fun formatCurrency(value: Long): String {
-            return NumberFormat.getNumberInstance(Locale("vi", "VN")).format(value)
+            return NumberFormat
+                .getCurrencyInstance(Locale("vi", "VN"))
+                .format(value)
         }
     }
 
-    private object DiffCallback : DiffUtil.ItemCallback<BudgetCategoryProgressUi>() {
-        override fun areItemsTheSame(old: BudgetCategoryProgressUi, new: BudgetCategoryProgressUi) =
-            old.categoryId == new.categoryId
-        override fun areContentsTheSame(old: BudgetCategoryProgressUi, new: BudgetCategoryProgressUi) =
-            old == new
+    companion object {
+        private val DiffCallback = object : DiffUtil.ItemCallback<BudgetCategoryProgressUi>() {
+            override fun areItemsTheSame(
+                oldItem: BudgetCategoryProgressUi,
+                newItem: BudgetCategoryProgressUi
+            ): Boolean {
+                return oldItem.categoryId == newItem.categoryId
+            }
+
+            override fun areContentsTheSame(
+                oldItem: BudgetCategoryProgressUi,
+                newItem: BudgetCategoryProgressUi
+            ): Boolean {
+                return oldItem == newItem
+            }
+        }
     }
 }

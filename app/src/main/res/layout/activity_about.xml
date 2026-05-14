@@ -1,0 +1,349 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<androidx.core.widget.NestedScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/app_background"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardBackgroundColor="@color/app_surface"
+            app:cardCornerRadius="22dp"
+            app:cardElevation="0dp"
+            app:strokeColor="@color/app_divider"
+            app:strokeWidth="1dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center_horizontal"
+                android:padding="22dp">
+
+                <ImageView
+                    android:layout_width="72dp"
+                    android:layout_height="72dp"
+                    android:background="@drawable/wallet"
+                    android:padding="14dp"
+                    android:scaleType="centerInside"
+                    android:src="@drawable/ic_launcher_foreground"
+                    app:tint="@color/primary" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:text="Money Tracker"
+                    android:textColor="@color/text_primary"
+                    android:textSize="24sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:gravity="center"
+                    android:lineSpacingExtra="3dp"
+                    android:text="Ứng dụng quản lý chi tiêu cá nhân, hỗ trợ theo dõi giao dịch, ví tiền, ngân sách và thống kê tài chính."
+                    android:textColor="@color/text_secondary"
+                    android:textSize="14sp" />
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="22dp"
+            android:text="THÔNG TIN ĐỒ ÁN"
+            android:textColor="@color/text_secondary"
+            android:textSize="11sp"
+            android:textStyle="bold" />
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            app:cardBackgroundColor="@color/app_surface"
+            app:cardCornerRadius="18dp"
+            app:cardElevation="0dp"
+            app:strokeColor="@color/app_divider"
+            app:strokeWidth="1dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Tên đề tài"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="3dp"
+                    android:text="Xây dựng ứng dụng quản lý chi tiêu cá nhân trên Android"
+                    android:textColor="@color/text_primary"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="0.5dp"
+                    android:layout_marginVertical="12dp"
+                    android:background="@color/app_divider" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Môn học"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="3dp"
+                    android:text="[Nhập tên môn học]"
+                    android:textColor="@color/text_primary"
+                    android:textSize="15sp" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="0.5dp"
+                    android:layout_marginVertical="12dp"
+                    android:background="@color/app_divider" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Giảng viên hướng dẫn"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="3dp"
+                    android:text="[Nhập tên giảng viên]"
+                    android:textColor="@color/text_primary"
+                    android:textSize="15sp" />
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="22dp"
+            android:text="NHÓM SINH VIÊN THỰC HIỆN"
+            android:textColor="@color/text_secondary"
+            android:textSize="11sp"
+            android:textStyle="bold" />
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            app:cardBackgroundColor="@color/app_surface"
+            app:cardCornerRadius="18dp"
+            app:cardElevation="0dp"
+            app:strokeColor="@color/app_divider"
+            app:strokeWidth="1dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="1. [Họ tên sinh viên 1] - [Mã sinh viên]"
+                    android:textColor="@color/text_primary"
+                    android:textSize="15sp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:text="2. [Họ tên sinh viên 2] - [Mã sinh viên]"
+                    android:textColor="@color/text_primary"
+                    android:textSize="15sp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:text="3. [Họ tên sinh viên 3] - [Mã sinh viên]"
+                    android:textColor="@color/text_primary"
+                    android:textSize="15sp" />
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="22dp"
+            android:text="TÍNH NĂNG CHÍNH"
+            android:textColor="@color/text_secondary"
+            android:textSize="11sp"
+            android:textStyle="bold" />
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            app:cardBackgroundColor="@color/app_surface"
+            app:cardCornerRadius="18dp"
+            app:cardElevation="0dp"
+            app:strokeColor="@color/app_divider"
+            app:strokeWidth="1dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:gravity="center_vertical"
+                    android:paddingHorizontal="16dp"
+                    android:text="• Thêm, sửa, xóa giao dịch thu nhập và chi tiêu"
+                    android:textColor="@color/text_primary"
+                    android:textSize="15sp" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="0.5dp"
+                    android:layout_marginStart="16dp"
+                    android:background="@color/app_divider" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:gravity="center_vertical"
+                    android:paddingHorizontal="16dp"
+                    android:text="• Quản lý ví tiền và số dư"
+                    android:textColor="@color/text_primary"
+                    android:textSize="15sp" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="0.5dp"
+                    android:layout_marginStart="16dp"
+                    android:background="@color/app_divider" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:gravity="center_vertical"
+                    android:paddingHorizontal="16dp"
+                    android:text="• Phân loại giao dịch theo nhóm"
+                    android:textColor="@color/text_primary"
+                    android:textSize="15sp" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="0.5dp"
+                    android:layout_marginStart="16dp"
+                    android:background="@color/app_divider" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:gravity="center_vertical"
+                    android:paddingHorizontal="16dp"
+                    android:text="• Theo dõi ngân sách theo từng danh mục"
+                    android:textColor="@color/text_primary"
+                    android:textSize="15sp" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="0.5dp"
+                    android:layout_marginStart="16dp"
+                    android:background="@color/app_divider" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:gravity="center_vertical"
+                    android:paddingHorizontal="16dp"
+                    android:text="• Tìm kiếm và lọc lịch sử giao dịch theo thời gian"
+                    android:textColor="@color/text_primary"
+                    android:textSize="15sp" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="0.5dp"
+                    android:layout_marginStart="16dp"
+                    android:background="@color/app_divider" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:gravity="center_vertical"
+                    android:paddingHorizontal="16dp"
+                    android:text="• Thống kê thu chi bằng biểu đồ trực quan"
+                    android:textColor="@color/text_primary"
+                    android:textSize="15sp" />
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="22dp"
+            android:text="CÔNG NGHỆ SỬ DỤNG"
+            android:textColor="@color/text_secondary"
+            android:textSize="11sp"
+            android:textStyle="bold" />
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="24dp"
+            app:cardBackgroundColor="@color/app_surface"
+            app:cardCornerRadius="18dp"
+            app:cardElevation="0dp"
+            app:strokeColor="@color/app_divider"
+            app:strokeWidth="1dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:lineSpacingExtra="5dp"
+                android:padding="16dp"
+                android:text="• Kotlin&#10;• Android XML View System&#10;• Room Database&#10;• Firebase Authentication&#10;• Firestore Sync&#10;• Material Components&#10;• MVVM Architecture"
+                android:textColor="@color/text_primary"
+                android:textSize="15sp" />
+
+        </com.google.android.material.card.MaterialCardView>
+
+    </LinearLayout>
+
+</androidx.core.widget.NestedScrollView>

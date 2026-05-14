@@ -1,20 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
-    <style name="Base.Theme.MoneyTracker" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+
+    <style name="Theme.MoneyTracker"
+        parent="Theme.Material3.DayNight.NoActionBar">
+
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorOnPrimary">@color/white</item>
+
+        <item name="android:windowBackground">@color/app_background</item>
+
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@color/app_surface</item>
+
+        <item
+            name="android:windowLightStatusBar"
+            tools:targetApi="23">false</item>
+
+        <item
+            name="android:windowLightNavigationBar"
+            tools:targetApi="27">false</item>
+
     </style>
 
-    <style name="Theme.MoneyTracker" parent="Base.Theme.MoneyTracker" />
+    <style name="Theme.App.Starting"
+        parent="Theme.SplashScreen">
 
-    <style name="ShapeAppearanceOverlay.App.Circle" parent="">
+        <item name="windowSplashScreenBackground">@color/app_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_wallet</item>
+        <item name="windowSplashScreenAnimationDuration">1000</item>
+
+        <item name="postSplashScreenTheme">@style/Theme.MoneyTracker</item>
+    </style>
+
+    <style name="ShapeAppearanceOverlay">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">0dp</item>
+    </style>
+
+    <style name="ShapeAppearanceOverlay.App">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">0dp</item>
+    </style>
+
+    <style name="ShapeAppearanceOverlay.App.Circle">
+        <item name="cornerFamily">rounded</item>
         <item name="cornerSize">50%</item>
     </style>
 
-    <style name="Theme.App.Starting" parent="Theme.SplashScreen">
-        <item name="windowSplashScreenBackground">@color/white</item>
-        <item name="windowSplashScreenAnimatedIcon">@drawable/logo</item>
-        <item name="windowSplashScreenAnimationDuration">1000</item>
-        <item name="postSplashScreenTheme">@style/Theme.MoneyTracker</item>
+    <style name="ShapeAppearanceOverlay.App.Small">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">18dp</item>
     </style>
+
 </resources>
